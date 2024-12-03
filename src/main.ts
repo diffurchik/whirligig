@@ -1,7 +1,14 @@
 import {Markup, Telegraf} from 'telegraf';
-import {getNotLearnedPhrasesByUserName, insertPhrase, markedPhraseAsLearned} from './db';
+import {
+    getNotLearnedPhrasesByUserName,
+    getRandomPhraseByUserId,
+    insertPhrase,
+    markedPhraseAsLearned
+} from './db';
 import {AddNewPhraseDB, Card, MyContext, UserStateEntry} from './types'
 import {message} from "telegraf/filters";
+import {learnCardsMenu, mainMenu, randomCardMenu, studyMenu} from "./menu";
+import {formattedText, sendCard} from "./card";
 
 const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM';
 
@@ -13,18 +20,14 @@ const bot = new Telegraf<MyContext>(BOT_TOKEN);
 const userState: Record<number, Partial<UserStateEntry>> = {}
 const userCardState: Record<number, { cards: Card[]; currentIndex: number, lastMessageId?: number }> = {};
 
-bot.start((ctx) => ctx.reply('Welcome to the bot! Choose an option:',
-    Markup.inlineKeyboard([
-        [Markup.button.callback('➕ Add new to learn', 'ADD_NEW')],
-        [Markup.button.callback('📖 Study', 'STUDY')],
-        [Markup.button.callback('Settings ⚙️', 'SETTINGS')],
-    ])));
+bot.start((ctx) => ctx.reply('Welcome to the bot! Choose an option:', mainMenu
+));
 
-bot.telegram.setMyCommands([
-    {command: 'add', description: 'add new to learn'},
-    {command: 'study', description: 'learn english phrase'},
-    {command: 'settings', description: 'update your preferences'},
-])
+// bot.telegram.setMyCommands([
+//     {command: 'add', description: 'add new to learn'},
+//     {command: 'study', description: 'learn english phrase'},
+//     {command: 'settings', description: 'update your preferences'},
+// ])
 
 
 bot.action('ADD_NEW', async (ctx) => {
@@ -33,6 +36,10 @@ bot.action('ADD_NEW', async (ctx) => {
     const username = ctx.from.username;
     userState[userId] = {username: username, step: 'add_english_phrase'};
     await ctx.reply('Please, enter the English phrase you want to learn', {reply_markup: {force_reply: true}})
+})
+
+bot.action('STUDY_MENU', async (ctx) => {
+    await ctx.editMessageText("Choose an option from the Study menu:", studyMenu)
 })
 
 bot.action('EXAMPLES', async (ctx) => {
@@ -96,23 +103,35 @@ bot.action("FINISH", async (ctx) => {
     if (englishPhrase && translation && username) {
         putDataInBD({id: userId, username, englishPhrase, translation, examples});
     }
+    const formattedCard = formattedText({english_phrase: englishPhrase, translate: translation, examples: examples})
 
     try {
         await ctx.reply(`Your phrase and translation have been saved! 🎉 \n Your new card is 👇`)
-        if (examples) {
-            await ctx.replyWithMarkdownV2(`📝 New card:\n\n*English Phrase* \n${englishPhrase}\n\n\n*Translation*\n ${translation} \n\n\n*Example*\n ${examples}`)
-        } else {
-            await ctx.replyWithMarkdownV2(`📝 New card:\n\n*English Phrase* \n${englishPhrase}\n\n\n*Translation*\n ${translation}`)
-        }
+        await ctx.replyWithMarkdownV2(`📝 New card:${formattedCard}`)
     } catch (error) {
         ctx.reply('something went wrong. Please, check your phrase and try again 🔄');
     }
     delete userState[userId];
 })
 
-bot.action('STUDY', async (ctx) => {
+bot.action("STUDY", async (ctx) => {
+    ctx.editMessageText("Choose the option from study menu", studyMenu)
+})
+
+bot.action('RANDOM_CARD', async (ctx) => {
+    await ctx.reply("You random cards is 👇")
+    const userId = ctx.from.id;
+    const card = await getRandomPhraseByUserId(userId)
+    if (card) {
+        userCardState[userId] = {cards: [card], currentIndex: 0};
+        await sendCard(randomCardMenu, ctx, userId, userCardState);
+    } else {
+        ctx.reply('There is not cards to study \n Click "Add new" to start education');
+    }
+})
+bot.action('LEARNING_CARDS', async (ctx) => {
         const userId = ctx.from.id;
-        const cards = await getNotLearnedPhrasesByUserName(ctx.from.username!)
+        const cards = await getNotLearnedPhrasesByUserName(ctx.from.id!)
         if (Array.isArray(cards) && cards.length) {
             userCardState[userId] = {cards, currentIndex: 0};
             await sendCardAndDeletePreviousMessage(ctx, userId);
@@ -150,27 +169,10 @@ bot.action('MARK_AS_LEARNED', async (ctx) => {
 
 async function sendCardAndDeletePreviousMessage(ctx: any, userId: number) {
     const {cards, currentIndex, lastMessageId} = userCardState[userId];
-    const card = cards[currentIndex];
-    let formattedCard = ''
 
-    if (card.examples) {
-        formattedCard = `📝 Card ${currentIndex + 1}:\n\n*English Phrase* \n${card.english_phrase}\n\n\n*Translation*\n ${card.translate}\n\n\n*Example*\n ${card.examples}`;
-    } else {
-        formattedCard = `📝 Card ${currentIndex + 1}:\n\n*English Phrase* \n${card.english_phrase}\n\n\n*Translation*\n ${card.translate}`;
-    }
     const buttonName = currentIndex === cards.length ? 'Last card' : 'Next card'
 
-    const sentMessage = await ctx.replyWithMarkdownV2(formattedCard, {
-        reply_markup: {
-            inline_keyboard: [
-                [{text: buttonName, callback_data: 'NEXT_CARD'}, {
-                    text: '✅ I learned it',
-                    callback_data: 'MARK_AS_LEARNED'
-                }],
-
-            ],
-        },
-    });
+    const sentMessage = await sendCard(learnCardsMenu(buttonName), ctx, userId, userCardState)
 
     if (lastMessageId) {
         try {
