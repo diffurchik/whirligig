@@ -27,20 +27,19 @@ export const insertPhrase = async (
     }
 };
 
-export const getAllPhrasesByUserName = async (userId: number): Promise<any[] | undefined> => {
+export const getAllCardsByUserId = async (user_id: string): Promise<any[] | undefined> => {
     const query = `SELECT *
                    FROM user_cards
-    WHERE username = ${userId}`;
+    WHERE user_id = $1`;
     try {
-        const res = await client.query(query);
+        const res = await client.query(query, [user_id]);
         return res.rows;
     } catch (err) {
         console.error('Error fetching data', err);
     }
 };
 
-export const getNotLearnedPhrasesByUserName = async (userId: number): Promise<any[] | undefined> => {
-    const user_id = userId.toString();
+export const getNotLearnedPhrasesByUserName = async (user_id: string): Promise<any[] | undefined> => {
     const query = `SELECT * FROM user_cards WHERE learned = false AND user_id = $1`;
     try {
         const res = await client.query(query, [user_id]);
@@ -50,8 +49,7 @@ export const getNotLearnedPhrasesByUserName = async (userId: number): Promise<an
     }
 };
 
-export const getRandomCardByUserId = async (userId: number) => {
-    const user_id = userId.toString();
+export const getRandomCardByUserId = async (user_id: string) => {
     const query = `SELECT *  FROM user_cards WHERE user_id = $1 ORDER BY RANDOM() LIMIT 1;`
     try {
         const res = await client.query(query, [user_id]);
@@ -62,7 +60,7 @@ export const getRandomCardByUserId = async (userId: number) => {
     }
 };
 
-export const markedPhraseAsLearned = async (cardId: number): Promise<void> => {
+export const markedCardAsLearned = async (cardId: number): Promise<void> => {
     const query = `UPDATE user_cards
                    SET learned = true
                    WHERE id = ${cardId};`

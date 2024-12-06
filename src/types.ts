@@ -32,5 +32,6 @@ export type Card = {
     english_phrase: string;
     translate: string;
     examples?: string
+    learned: boolean
 }
 

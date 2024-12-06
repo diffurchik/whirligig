@@ -1,14 +1,15 @@
 import {Telegraf} from 'telegraf';
 import {
-    deleteCardFromDB,
+    deleteCardFromDB, getAllCardsByUserId,
     getNotLearnedPhrasesByUserName,
     getRandomCardByUserId,
     insertPhrase,
-    markedPhraseAsLearned, setRandomCardTime
+    markedCardAsLearned, setRandomCardTime
 } from './db';
 import {AddNewPhraseDB, Card, MyContext, NewPhraseState} from './types'
 import {message} from "telegraf/filters";
 import {
+    addedCardMenu,
     backToMenus,
     cardSettingsMenu,
     confirmationMenu,
@@ -40,7 +41,7 @@ bot.action('ADD_NEW', async (ctx) => {
     const userId = ctx.from.id;
     const username = ctx.from.username;
     userActionState[userId] = {username: username, step: 'add_english_phrase'};
-    await ctx.reply('Please, enter the English phrase you want to learn', {reply_markup: {force_reply: true}})
+    await ctx.reply('🖖 Please, enter the English phrase you want to learn', {reply_markup: {force_reply: true}})
 })
 
 bot.action('STUDY_MENU', async (ctx) => {
@@ -73,8 +74,8 @@ bot.action("FINISH", async (ctx) => {
     const formattedCard = formattedText({english_phrase: englishPhrase, translate: translation, examples: examples})
 
     try {
-        await ctx.reply(`Your phrase and translation have been saved! 🎉 \n Your new card is 👇`)
-        await ctx.replyWithMarkdownV2(`📝 New card:${formattedCard}`)
+        await ctx.reply(`Your phrase and translation have been saved! 🎉`)
+        await ctx.replyWithMarkdownV2(`📝 New card:${formattedCard}`, addedCardMenu)
     } catch (error) {
         ctx.reply('something went wrong. Please, check your phrase and try again 🔄');
     }
@@ -82,9 +83,8 @@ bot.action("FINISH", async (ctx) => {
 })
 
 bot.action('RANDOM_CARD', async (ctx) => {
-    await ctx.reply("You random cards is 👇")
     const userId = ctx.from.id;
-    const card = await getRandomCardByUserId(userId)
+    const card = await getRandomCardByUserId(userId.toString())
     if (card) {
         cardsState[userId] = {cards: [card], currentIndex: 0};
         await sendCard(randomCardMenu, ctx, userId, cardsState);
@@ -95,7 +95,7 @@ bot.action('RANDOM_CARD', async (ctx) => {
 
 bot.action('LEARNING_CARDS', async (ctx) => {
         const userId = ctx.from.id;
-        const cards = await getNotLearnedPhrasesByUserName(ctx.from.id!)
+        const cards = await getNotLearnedPhrasesByUserName(ctx.from.id!.toString())
         if (Array.isArray(cards) && cards.length) {
             cardsState[userId] = {cards, currentIndex: 0};
             await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
@@ -115,7 +115,7 @@ bot.action('NEXT_CARD', async (ctx) => {
     }
 
 
-    if (userCardsByUser.currentIndex < userCardsByUser.cards.length ) {
+    if (userCardsByUser.currentIndex < userCardsByUser.cards.length) {
         const sentMessage = await sendCard(learnCardsMenu(), ctx, userId, cardsState);
         if (userCardsByUser.lastMessageId) {
             try {
@@ -128,7 +128,7 @@ bot.action('NEXT_CARD', async (ctx) => {
 
         cardsState[userId].lastMessageId = sentMessage.message_id;
     } else {
-        await ctx.editMessageText('You’ve reached the end of the cards 🎉 Great job! ');
+        await ctx.editMessageText('You’ve reached the end of the cards 🎉 Great job!', backToMenus);
         delete cardsState[userId];
     }
 })
@@ -137,7 +137,7 @@ bot.action('MARK_AS_LEARNED', async (ctx) => {
     const userId = ctx.from.id;
     const {cards, currentIndex} = cardsState[userId]
     const id = cards[currentIndex].id
-    await markedPhraseAsLearned(id)
+    await markedCardAsLearned(id)
     ctx.reply('Congrats with new phrase in your vocab 🚀 This phrase will be skipped the next time');
 })
 
@@ -158,7 +158,7 @@ bot.action('SET_RANDOM_CARD_TIME', async (ctx) => {
 })
 
 bot.action('CARD_SETTINGS', async (ctx) => {
-     ctx.reply('Choose an option from the card settings menu', cardSettingsMenu)
+    ctx.reply('Choose an option from the card settings menu', cardSettingsMenu)
 })
 
 bot.action('DELETE_CARD', async (ctx) => {
@@ -170,10 +170,27 @@ bot.action('YES_DELETE_CARD', async (ctx) => {
     const {cards, currentIndex} = cardsState[userId]
     const cardId = cards[currentIndex].id
     const resultDeleting = await deleteCardFromDB(userId.toString(), cardId);
-    if(resultDeleting) {
+    if (resultDeleting) {
         ctx.editMessageText('Card was deleted successfully.', backToMenus);
     } else {
         ctx.editMessageText('Something went wrong. Try again', confirmationMenu)
+    }
+})
+
+bot.action('NO_DELETE_CARD', async (ctx) => {
+    const userId = ctx.from.id;
+    await sendCard(learnCardsMenu(), ctx, userId, cardsState);
+})
+
+bot.action('ALL_CARDS', async (ctx) => {
+    const userId = (ctx.from.id).toString()
+    const cards = await getAllCardsByUserId(userId) as Card[]
+    if (cards.length > 0) {
+        const cardsList = cards.map((card, index) =>
+            `🔸 #${index}\n--English Phrase:\n${card.english_phrase}\n--Translation:\n${card.translate}\n--Example: \n${card.examples}\n\n--Learned: ${card.learned? '✅' : 'in process'} `).join('\n---------------------\n\n')
+        ctx.editMessageText(cardsList, backToMenus);
+    } else {
+        ctx.editMessageText('There is no card You can edit it by the menu', backToMenus);
     }
 })
 
@@ -200,7 +217,7 @@ bot.on(message('text'), async (ctx) => {
         await ctx.replyWithMarkdownV2('All set 📌\nClick `"Add examples"` if you want to add examples of use or Click `"Finish"` to save it', {
             reply_markup: {
                 inline_keyboard: [
-                    [{text: 'Add examples', callback_data: 'EXAMPLES'}, {text: 'Finish 🏁', callback_data: 'FINISH'}]
+                    [{text: '✍️ Add examples', callback_data: 'EXAMPLES'}, {text: 'Finish 🏁', callback_data: 'FINISH'}]
                 ],
                 resize_keyboard: true,
                 one_time_keyboard: true
@@ -223,24 +240,24 @@ bot.on(message('text'), async (ctx) => {
         return
     }
 
-    if(state.step === 'edit_card') {
+    if (state.step === 'edit_card') {
 
     }
 
-    if(state.step === 'set_random_time') {
+    if (state.step === 'set_random_time') {
         const time = ctx.message.text;
 
         if (!/^\d{2}:\d{2}$/.test(time)) {
             return ctx.reply("Invalid time format. Please enter time as HH:MM (24-hour).");
         }
 
-        userSchedules[userId] = { time };
+        userSchedules[userId] = {time};
         await setRandomCardTime((userId).toString(), time, true)
 
         ctx.reply(`Got it! I'll send you a random card daily at ${time}.`);
 
         cron.schedule(`0 ${time.split(':')[1]} ${time.split(':')[0]} * * *`, async () => {
-            const randomCard = await getRandomCardByUserId(ctx.from.id!);
+            const randomCard = await getRandomCardByUserId(ctx.from.id!.toString());
             if (randomCard) {
                 await ctx.replyWithMarkdownV2("✨ *Scheduled Card* ✨")
                 cardsState[userId] = {cards: [randomCard], currentIndex: 0};

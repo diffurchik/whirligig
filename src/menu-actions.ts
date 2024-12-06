@@ -1,9 +1,9 @@
 import {Markup} from "telegraf";
 
 export const mainMenu = Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Add new to learn', 'ADD_NEW')],
+    [Markup.button.callback('➕ Add a card to learn', 'ADD_NEW')],
     [Markup.button.callback('📖 Study', 'STUDY_MENU')],
-    [Markup.button.callback('Settings ⚙️', 'SETTINGS')],
+    [Markup.button.callback('⚙️Settings', 'SETTINGS')],
 ])
 
 export const studyMenu = {
@@ -13,6 +13,7 @@ export const studyMenu = {
                 text: "Random card",
                 callback_data: "RANDOM_CARD"
             }],
+            [Markup.button.callback('📑 See all cards', 'ALL_CARDS')],
             [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
         ],
     },
@@ -26,7 +27,7 @@ export const learnCardsMenu = () => {
                     text: '✅ I learned it',
                     callback_data: 'MARK_AS_LEARNED'
                 }],
-                [{text: 'Edit the card', callback_data: 'EDIT_CARD'}],
+                [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}],
                 [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}]
 
             ],
@@ -45,6 +46,15 @@ export const randomCardMenu = {
 
         ],
     },
+}
+
+export const addedCardMenu = {
+    reply_markup: {
+        inline_keyboard: [
+            [{text: "Add a new card", callback_data: 'ADD_NEW'}, {text: 'Edit this card', callback_data: 'EDIT_CARD'}, {text: 'Delete this card', callback_data: 'DELETE_CARD'}],
+            [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
+        ]
+    }
 }
 
 export const settingsMenu = (isSendingRandomCard: boolean = false) => {
@@ -75,7 +85,7 @@ export const cardSettingsMenu = {
 export const confirmationMenu = {
     reply_markup: {
         inline_keyboard: [
-            [{text: '✅ Yes', callback_data: 'YES_DELETE_CARD'}, {text: '🚫 No', callback_data: 'NO'}],
+            [{text: '✅ Yes', callback_data: 'YES_DELETE_CARD'}, {text: '🚫 No', callback_data: 'NO_DELETE_CARD'}],
         ]
     }
 }
@@ -84,7 +94,7 @@ export const backToMenus = {
     reply_markup: {
         inline_keyboard: [
             [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
-            [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}]
+            [{text: '🔙 Back to the study menu ', callback_data: 'STUDY_MENU'}]
         ]
     }
 }

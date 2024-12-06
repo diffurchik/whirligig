@@ -14,12 +14,12 @@ export const formattedText = (card: Partial<Card>): string => {
 }
 
 
-export async function sendCard(menuButtons: any, ctx: any, userId: number, userCardState: Record<number, {
+export async function sendCard(menuButtons: any, ctx: any, userId: number, cardsState: Record<number, {
     cards: Card[];
     currentIndex: number,
     lastMessageId?: number
 }>) {
-    const {cards, currentIndex} = userCardState[userId];
+    const {cards, currentIndex} = cardsState[userId];
     const card = cards[currentIndex];
     const formattedCard = formattedText(card)
 
