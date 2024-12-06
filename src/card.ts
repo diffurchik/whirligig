@@ -1,5 +1,5 @@
 import {Card} from "./types";
-import {learnCardsMenu} from "./menu";
+import {learnCardsMenu} from "./menu-actions";
 
 export const formattedText = (card: Partial<Card>): string => {
     let formattedCard = ''
@@ -25,4 +25,26 @@ export async function sendCard(menuButtons: any, ctx: any, userId: number, userC
 
     return await ctx.replyWithMarkdownV2(`📝 Card ${currentIndex + 1}:${formattedCard}`, menuButtons);
 
+}
+
+export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number, userCardState: Record<number, {
+    cards: Card[];
+    currentIndex: number,
+    lastMessageId?: number
+}>) {
+    const {cards, currentIndex, lastMessageId} = userCardState[userId];
+
+    const buttonName = currentIndex === cards.length ? 'Last card' : 'Next card'
+
+    const sentMessage = await sendCard(learnCardsMenu(), ctx, userId, userCardState)
+
+    if (lastMessageId) {
+        try {
+            await ctx.deleteMessage(lastMessageId);
+        } catch (error) {
+            console.error('Error deleting previous message:', error);
+        }
+    }
+
+    userCardState[userId].lastMessageId = sentMessage.message_id;
 }

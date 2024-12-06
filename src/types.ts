@@ -7,9 +7,9 @@ export interface MyWizardSession extends Scenes.WizardSessionData {
 }
 
 export type MyContext = Scenes.WizardContext<MyWizardSession>;
-export type AddPhraseStep = 'add_english_phrase' | 'add_translation' | 'add_examples';
+export type actionsSteps = 'add_english_phrase' | 'add_translation' | 'add_examples' | 'edit_card' | 'set_random_time';
 
-export type UserStateEntry = Partial<AddNewPhraseDB> & { step?: AddPhraseStep };
+export type NewPhraseState = Partial<AddNewPhraseDB> & { step?: actionsSteps };
 
 export interface Message {
     message: string;
