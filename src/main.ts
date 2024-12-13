@@ -18,9 +18,10 @@ import {
     randomCardMenu,
     settingsMenu,
     studyMenu
-} from "./menu-actions";
+} from "./menus";
 import {formattedText, sendCard, sendCardAndDeletePreviousMessage} from "./card";
 import cron from 'node-cron';
+import {loadSchedules} from "./schedule";
 
 const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM';
 
@@ -84,7 +85,7 @@ bot.action("FINISH", async (ctx) => {
 
 bot.action('RANDOM_CARD', async (ctx) => {
     const userId = ctx.from.id;
-    const card = await getRandomCardByUserId(userId.toString())
+    const card = await getRandomCardByUserId(userId)
     if (card) {
         cardsState[userId] = {cards: [card], currentIndex: 0};
         await sendCard(randomCardMenu, ctx, userId, cardsState);
@@ -95,7 +96,7 @@ bot.action('RANDOM_CARD', async (ctx) => {
 
 bot.action('LEARNING_CARDS', async (ctx) => {
         const userId = ctx.from.id;
-        const cards = await getNotLearnedPhrasesByUserName(ctx.from.id!.toString())
+        const cards = await getNotLearnedPhrasesByUserName(ctx.from.id!)
         if (Array.isArray(cards) && cards.length) {
             cardsState[userId] = {cards, currentIndex: 0};
             await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
@@ -146,8 +147,7 @@ bot.action('EDIT_CARD', async (ctx) => {
     const {cards, currentIndex} = cardsState[userId]
     const id = cards[currentIndex].id
 
-    userActionState[userId].step = 'edit_card'
-    // ctx.editMessageText('Enter')
+    userActionState[userId] = {username: ctx.from.username, step: 'edit_card'};
 })
 
 bot.action('SET_RANDOM_CARD_TIME', async (ctx) => {
@@ -169,7 +169,7 @@ bot.action('YES_DELETE_CARD', async (ctx) => {
     const userId = ctx.from.id;
     const {cards, currentIndex} = cardsState[userId]
     const cardId = cards[currentIndex].id
-    const resultDeleting = await deleteCardFromDB(userId.toString(), cardId);
+    const resultDeleting = await deleteCardFromDB(userId, cardId);
     if (resultDeleting) {
         ctx.editMessageText('Card was deleted successfully.', backToMenus);
     } else {
@@ -183,11 +183,11 @@ bot.action('NO_DELETE_CARD', async (ctx) => {
 })
 
 bot.action('ALL_CARDS', async (ctx) => {
-    const userId = (ctx.from.id).toString()
+    const userId = (ctx.from.id)
     const cards = await getAllCardsByUserId(userId) as Card[]
     if (cards.length > 0) {
         const cardsList = cards.map((card, index) =>
-            `🔸 #${index}\n--English Phrase:\n${card.english_phrase}\n--Translation:\n${card.translate}\n--Example: \n${card.examples}\n\n--Learned: ${card.learned? '✅' : 'in process'} `).join('\n---------------------\n\n')
+            `🔸 #${index}\n--English Phrase:\n${card.english_phrase}\n--Translation:\n${card.translate}\n--Example: \n${card.examples}\n\n--Learned: ${card.learned ? '✅' : 'in process'} `).join('\n---------------------\n\n')
         ctx.editMessageText(cardsList, backToMenus);
     } else {
         ctx.editMessageText('There is no card You can edit it by the menu', backToMenus);
@@ -252,20 +252,9 @@ bot.on(message('text'), async (ctx) => {
         }
 
         userSchedules[userId] = {time};
-        await setRandomCardTime((userId).toString(), time, true)
+        await setRandomCardTime((userId), time, true)
 
         ctx.reply(`Got it! I'll send you a random card daily at ${time}.`);
-
-        cron.schedule(`0 ${time.split(':')[1]} ${time.split(':')[0]} * * *`, async () => {
-            const randomCard = await getRandomCardByUserId(ctx.from.id!.toString());
-            if (randomCard) {
-                await ctx.replyWithMarkdownV2("✨ *Scheduled Card* ✨")
-                cardsState[userId] = {cards: [randomCard], currentIndex: 0};
-                await sendCard(randomCardMenu, ctx, userId, cardsState);
-            } else {
-                ctx.reply('There is not cards to study \n Click "Add new" to start education');
-            }
-        })
     }
 })
 
@@ -281,7 +270,10 @@ function putDataInBD(dbTransactionMessage: AddNewPhraseDB) {
 }
 
 
-bot.launch().then(() => console.log('Bot is running...'));
+bot.launch().then(async (ctx) => {
+    await loadSchedules(ctx, cardsState);
+    console.log('Bot is running...')
+});
 
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

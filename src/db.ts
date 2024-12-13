@@ -1,4 +1,5 @@
 import {Client} from "pg";
+import {UserSchedule} from "./types";
 
 const client = new Client({
     user: 'postgres',
@@ -27,7 +28,7 @@ export const insertPhrase = async (
     }
 };
 
-export const getAllCardsByUserId = async (user_id: string): Promise<any[] | undefined> => {
+export const getAllCardsByUserId = async (user_id: number): Promise<any[] | undefined> => {
     const query = `SELECT *
                    FROM user_cards
     WHERE user_id = $1`;
@@ -39,7 +40,7 @@ export const getAllCardsByUserId = async (user_id: string): Promise<any[] | unde
     }
 };
 
-export const getNotLearnedPhrasesByUserName = async (user_id: string): Promise<any[] | undefined> => {
+export const getNotLearnedPhrasesByUserName = async (user_id: number): Promise<any[] | undefined> => {
     const query = `SELECT * FROM user_cards WHERE learned = false AND user_id = $1`;
     try {
         const res = await client.query(query, [user_id]);
@@ -49,7 +50,7 @@ export const getNotLearnedPhrasesByUserName = async (user_id: string): Promise<a
     }
 };
 
-export const getRandomCardByUserId = async (user_id: string) => {
+export const getRandomCardByUserId = async (user_id: number) => {
     const query = `SELECT *  FROM user_cards WHERE user_id = $1 ORDER BY RANDOM() LIMIT 1;`
     try {
         const res = await client.query(query, [user_id]);
@@ -71,7 +72,7 @@ export const markedCardAsLearned = async (cardId: number): Promise<void> => {
     }
 }
 
-export const setRandomCardTime = async (user_id: string, rand_card_time: string, show_random_card: boolean,) => {
+export const setRandomCardTime = async (user_id: number, rand_card_time: string, show_random_card: boolean,) => {
     const query = `INSERT INTO user_settings (rand_card_time, show_random_card, user_id)
                    VALUES ($1, $2, $3) RETURNING id;`;
     console.error('Query inserted: ', query);
@@ -84,7 +85,17 @@ export const setRandomCardTime = async (user_id: string, rand_card_time: string,
     }
 }
 
-export const deleteCardFromDB = async (user_id: string, card_id: number): Promise<any> => {
+export const getAllUserSchedules = async (): Promise<UserSchedule[] | undefined> => {
+    const query = `SELECT * FROM user_settings WHERE show_random_card is true`;
+    try {
+        const res = await client.query(query);
+        return res.rows;
+    } catch (err) {
+        console.error('Error fetching data', err);
+    }
+}
+
+export const deleteCardFromDB = async (user_id: number, card_id: number): Promise<any> => {
     const query = `DELETE FROM user_cards WHERE id = ${card_id} AND user_id = $1`;
     try {
         const res = await client.query(query, [user_id]);

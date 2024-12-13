@@ -35,3 +35,11 @@ export type Card = {
     learned: boolean
 }
 
+export type UserSchedule = {
+    id: number;
+    user_id: number;
+    rand_card_time: string;
+    show_random_card: boolean;
+    timezone: string;
+}
+

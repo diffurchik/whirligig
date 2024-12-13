@@ -1,5 +1,5 @@
 import {Card} from "./types";
-import {learnCardsMenu} from "./menu-actions";
+import {learnCardsMenu} from "./menus";
 
 export const formattedText = (card: Partial<Card>): string => {
     let formattedCard = ''
