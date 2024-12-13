@@ -11,6 +11,7 @@ export type actionsSteps = 'add_english_phrase' | 'add_translation' | 'add_examp
 
 export type NewPhraseState = Partial<AddNewPhraseDB> & { step?: actionsSteps };
 
+export type CardType =  'random'| 'learning'
 export interface Message {
     message: string;
     created_at: string;

@@ -6,7 +6,7 @@ import {
     insertPhrase,
     markedCardAsLearned, setRandomCardTime
 } from './db';
-import {AddNewPhraseDB, Card, MyContext, NewPhraseState} from './types'
+import {AddNewPhraseDB, Card, CardType, MyContext, NewPhraseState} from './types'
 import {message} from "telegraf/filters";
 import {
     addedCardMenu,
@@ -31,7 +31,12 @@ if (!BOT_TOKEN) {
 
 export const bot = new Telegraf<MyContext>(BOT_TOKEN);
 const userActionState: Record<number, Partial<NewPhraseState>> = {}
-const cardsState: Record<number, { cards: Card[]; currentIndex: number, lastMessageId?: number }> = {};
+const cardsState: Record<number, {
+    cards: Card[];
+    currentIndex: number,
+    lastMessageId?: number,
+    cardType?: CardType
+}> = {};
 const userSchedules: Record<number, { time: string }> = {};
 
 bot.start((ctx) => ctx.reply('Welcome to the bot! Choose an option:', mainMenu
@@ -87,7 +92,7 @@ bot.action('RANDOM_CARD', async (ctx) => {
     const userId = ctx.from.id;
     const card = await getRandomCardByUserId(userId)
     if (card) {
-        cardsState[userId] = {cards: [card], currentIndex: 0};
+        cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};
         await sendCard(randomCardMenu, ctx, userId, cardsState);
     } else {
         ctx.reply('There is not cards to study \n Click "Add new" to start education');
@@ -98,7 +103,7 @@ bot.action('LEARNING_CARDS', async (ctx) => {
         const userId = ctx.from.id;
         const cards = await getNotLearnedPhrasesByUserName(ctx.from.id!)
         if (Array.isArray(cards) && cards.length) {
-            cardsState[userId] = {cards, currentIndex: 0};
+            cardsState[userId] = {cards, currentIndex: 0, cardType: 'learning'};
             await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
             cardsState[userId].currentIndex++
         } else {
@@ -179,7 +184,9 @@ bot.action('YES_DELETE_CARD', async (ctx) => {
 
 bot.action('NO_DELETE_CARD', async (ctx) => {
     const userId = ctx.from.id;
-    await sendCard(learnCardsMenu(), ctx, userId, cardsState);
+    const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu();
+    cardsState[userId].currentIndex --
+    await sendCard(menu, ctx, userId, cardsState);
 })
 
 bot.action('ALL_CARDS', async (ctx) => {

@@ -85,7 +85,7 @@ export const cardSettingsMenu = {
 export const confirmationMenu = {
     reply_markup: {
         inline_keyboard: [
-            [{text: '✅ Yes', callback_data: 'YES_DELETE_CARD'}, {text: '🚫 No', callback_data: 'NO_DELETE_CARD'}],
+            [{text: '✅ Yes', callback_data: 'YES_DELETE_CARD'}, {text: '🔙 No', callback_data: 'NO_DELETE_CARD'}],
         ]
     }
 }
