@@ -1,4 +1,10 @@
-import {getAllUserSchedules, getRandomCardByUserId} from "./db";
+import {
+    getAllUserSchedules,
+    getRandomCardByUserId,
+    getScheduleByUser,
+    insertRandomCardTime,
+    updateRandomCardTime
+} from "./db";
 import {Card, UserSchedule} from "./types";
 import cron from 'node-cron';
 import {sendCard} from "./card";
@@ -13,7 +19,7 @@ export async function loadSchedules(ctx: any, cardState: Record<number, {
     lastMessageId?: number
 }>) {
     const schedules = await getAllUserSchedules()
-    if (schedules && schedules.length === 0) {
+    if (schedules && schedules.length !== 0) {
         schedules.forEach((schedule) => {
             scheduleCard(schedule, ctx, cardState)
         })
@@ -25,7 +31,11 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
     currentIndex: number,
     lastMessageId?: number
 }>) {
-    const {user_id, rand_card_time, timezone = 'UTC'} = schedule
+    const {user_id, rand_card_time, show_random_card, timezone = 'UTC'} = schedule
+
+    if(!show_random_card){
+        return
+    }
 
     if (scheduledJobs[user_id]) {
         scheduledJobs[user_id].stop()
@@ -47,4 +57,17 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
             }
         }
     )
+}
+
+export async function setRandomCardTime(userId: number, time: string, showRandomCard: boolean) {
+    const scheduleByUser = await getScheduleByUser(userId)
+    let id: number | undefined
+    if (!scheduleByUser) {
+       id = await insertRandomCardTime(userId, time, showRandomCard);
+    } else {
+        await updateRandomCardTime(userId, time, showRandomCard);
+    }
+
+    return id
+
 }

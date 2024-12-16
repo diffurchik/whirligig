@@ -4,7 +4,7 @@ import {
     getNotLearnedPhrasesByUserName,
     getRandomCardByUserId,
     insertPhrase,
-    markedCardAsLearned, setRandomCardTime
+    markedCardAsLearned, updateRandomCardTime
 } from './db';
 import {AddNewPhraseDB, Card, CardType, MyContext, NewPhraseState} from './types'
 import {message} from "telegraf/filters";
@@ -20,10 +20,10 @@ import {
     studyMenu
 } from "./menus";
 import {formattedText, sendCard, sendCardAndDeletePreviousMessage} from "./card";
-import cron from 'node-cron';
-import {loadSchedules} from "./schedule";
+import {loadSchedules, scheduleCard, setRandomCardTime} from "./schedule";
 
-const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM';
+// const BOT_TOKEN = '8084776606:AAGDCeqWhkYN7tXcZoDjLy0Eq8W3Ip3Wc0M'; // test
+const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM'; // prod
 
 if (!BOT_TOKEN) {
     throw new Error('Bot token is missing. Please add your bot token.');
@@ -37,7 +37,6 @@ const cardsState: Record<number, {
     lastMessageId?: number,
     cardType?: CardType
 }> = {};
-const userSchedules: Record<number, { time: string }> = {};
 
 bot.start((ctx) => ctx.reply('Welcome to the bot! Choose an option:', mainMenu
 ));
@@ -80,7 +79,7 @@ bot.action("FINISH", async (ctx) => {
     const formattedCard = formattedText({english_phrase: englishPhrase, translate: translation, examples: examples})
 
     try {
-        await ctx.reply(`Your phrase and translation have been saved! 🎉`)
+        await ctx.reply(`Your phrase and translation have been saved! 🎉`);
         await ctx.replyWithMarkdownV2(`📝 New card:${formattedCard}`, addedCardMenu)
     } catch (error) {
         ctx.reply('something went wrong. Please, check your phrase and try again 🔄');
@@ -158,7 +157,7 @@ bot.action('EDIT_CARD', async (ctx) => {
 bot.action('SET_RANDOM_CARD_TIME', async (ctx) => {
     const userId = ctx.from.id;
     const username = ctx.from.username;
-    await ctx.editMessageText("At what time (HH:MM, 24-hour format) should I send you a random card daily?")
+    await ctx.reply("At what time (HH:MM, 24-hour format) should I send you a random card daily?", {reply_markup: {force_reply: true}})
     userActionState[userId] = {username: username, step: 'set_random_time'};
 })
 
@@ -185,7 +184,7 @@ bot.action('YES_DELETE_CARD', async (ctx) => {
 bot.action('NO_DELETE_CARD', async (ctx) => {
     const userId = ctx.from.id;
     const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu();
-    cardsState[userId].currentIndex --
+    cardsState[userId].currentIndex--
     await sendCard(menu, ctx, userId, cardsState);
 })
 
@@ -258,8 +257,15 @@ bot.on(message('text'), async (ctx) => {
             return ctx.reply("Invalid time format. Please enter time as HH:MM (24-hour).");
         }
 
-        userSchedules[userId] = {time};
-        await setRandomCardTime((userId), time, true)
+        const id = await setRandomCardTime(userId, time, true)
+
+        scheduleCard({
+            id: id,
+            user_id: ctx.from.id,
+            show_random_card: true,
+            rand_card_time: time,
+            timezone: 'UTC'
+        }, ctx, cardsState)
 
         ctx.reply(`Got it! I'll send you a random card daily at ${time}.`);
     }
@@ -277,11 +283,13 @@ function putDataInBD(dbTransactionMessage: AddNewPhraseDB) {
 }
 
 
-bot.launch().then(async (ctx) => {
-    await loadSchedules(ctx, cardsState);
+bot.launch(() => {
     console.log('Bot is running...')
 });
 
+if (bot) bot.telegram.getMe().then(async (ctx) => {
+    await loadSchedules(ctx, cardsState)
+})
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));

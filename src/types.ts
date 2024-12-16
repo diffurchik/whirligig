@@ -37,7 +37,7 @@ export type Card = {
 }
 
 export type UserSchedule = {
-    id: number;
+    id?: number;
     user_id: number;
     rand_card_time: string;
     show_random_card: boolean;
