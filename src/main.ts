@@ -10,7 +10,7 @@ import {AddNewPhraseDB, Card, CardType, MyContext, NewPhraseState} from './types
 import {message} from "telegraf/filters";
 import {
     addedCardMenu,
-    backToMenus,
+    backToMenus, backToSettingsMenu,
     cardSettingsMenu,
     confirmationMenu,
     learnCardsMenu,
@@ -21,6 +21,7 @@ import {
 } from "./menus";
 import {formattedText, sendCard, sendCardAndDeletePreviousMessage} from "./card";
 import {loadSchedules, scheduleCard, setRandomCardTime} from "./schedule";
+import {escapeMarkdownV2} from "./helper";
 
 // const BOT_TOKEN = '8084776606:AAGDCeqWhkYN7tXcZoDjLy0Eq8W3Ip3Wc0M'; // test
 const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM'; // prod
@@ -59,7 +60,7 @@ bot.action('MAIN_MENU', async (ctx) => {
 })
 
 bot.action('SETTINGS', async (ctx) => {
-    await ctx.editMessageText("Your current settings is", settingsMenu())
+    await ctx.editMessageText("Your current settings", settingsMenu())
 })
 
 bot.action('EXAMPLES', async (ctx) => {
@@ -106,7 +107,7 @@ bot.action('LEARNING_CARDS', async (ctx) => {
             await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
             cardsState[userId].currentIndex++
         } else {
-            ctx.reply('There is not cards to study \n Click "Add new" to start education');
+            ctx.reply('There are not cards to study \n Click "Add new" to start education');
         }
     }
 )
@@ -121,7 +122,7 @@ bot.action('NEXT_CARD', async (ctx) => {
 
 
     if (userCardsByUser.currentIndex < userCardsByUser.cards.length) {
-        const sentMessage = await sendCard(learnCardsMenu(), ctx, userId, cardsState);
+        const sentMessage = await sendCard(learnCardsMenu, ctx, userId, cardsState);
         if (userCardsByUser.lastMessageId) {
             try {
                 await ctx.deleteMessage(userCardsByUser.lastMessageId);
@@ -162,7 +163,13 @@ bot.action('SET_RANDOM_CARD_TIME', async (ctx) => {
 })
 
 bot.action('CARD_SETTINGS', async (ctx) => {
-    ctx.reply('Choose an option from the card settings menu', cardSettingsMenu)
+    ctx.editMessageReplyMarkup(cardSettingsMenu)
+})
+
+bot.action('CARD_MENU', async (ctx) => {
+    const userId = ctx.from.id;
+    const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu;
+    ctx.editMessageReplyMarkup(menu)
 })
 
 bot.action('DELETE_CARD', async (ctx) => {
@@ -183,8 +190,10 @@ bot.action('YES_DELETE_CARD', async (ctx) => {
 
 bot.action('NO_DELETE_CARD', async (ctx) => {
     const userId = ctx.from.id;
-    const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu();
-    cardsState[userId].currentIndex--
+    const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu;
+    if (cardsState[userId].cardType === 'learning' && cardsState[userId].currentIndex > 1) {
+        cardsState[userId].currentIndex--
+    }
     await sendCard(menu, ctx, userId, cardsState);
 })
 
@@ -196,7 +205,9 @@ bot.action('ALL_CARDS', async (ctx) => {
             `🔸 #${index}\n--English Phrase:\n${card.english_phrase}\n--Translation:\n${card.translate}\n--Example: \n${card.examples}\n\n--Learned: ${card.learned ? '✅' : 'in process'} `).join('\n---------------------\n\n')
         ctx.editMessageText(cardsList, backToMenus);
     } else {
-        ctx.editMessageText('There is no card You can edit it by the menu', backToMenus);
+        const text = escapeMarkdownV2('There is no card. You can add a card by the menu');
+        ctx.editMessageText(text, backToMenus);
+
     }
 })
 
@@ -212,14 +223,14 @@ bot.on(message('text'), async (ctx) => {
     let state = userActionState[userId]
 
     if (state.step === 'add_english_phrase') {
-        userActionState[userId].englishPhrase = ctx.message.text;
+        userActionState[userId].englishPhrase = escapeMarkdownV2(ctx.message.text);
         userActionState[userId].step = 'add_translation'
         await ctx.reply('Got it 👍 \nNow, please enter the translation for it:', {reply_markup: {force_reply: true}});
         return;
     }
 
     if (state.step === 'add_translation') {
-        userActionState[userId].translation = ctx.message.text;
+        userActionState[userId].translation = escapeMarkdownV2(ctx.message.text);
         await ctx.replyWithMarkdownV2('All set 📌\nClick `"Add examples"` if you want to add examples of use or Click `"Finish"` to save it', {
             reply_markup: {
                 inline_keyboard: [
@@ -233,7 +244,7 @@ bot.on(message('text'), async (ctx) => {
     }
 
     if (state.step === 'add_examples') {
-        userActionState[userId].examples = ctx.message.text;
+        userActionState[userId].examples = escapeMarkdownV2(ctx.message.text);
         await ctx.replyWithMarkdownV2('All set 📌\n Click `"Finish"` to save it', {
             reply_markup: {
                 inline_keyboard: [
@@ -266,8 +277,8 @@ bot.on(message('text'), async (ctx) => {
             rand_card_time: time,
             timezone: 'UTC'
         }, ctx, cardsState)
-
-        ctx.reply(`Got it! I'll send you a random card daily at ${time}.`);
+        const message = escapeMarkdownV2(`Got it! I'll send you a random card daily at ${time}`)
+        await ctx.replyWithMarkdownV2(message, backToSettingsMenu);
     }
 })
 

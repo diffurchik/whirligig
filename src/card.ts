@@ -23,7 +23,7 @@ export async function sendCard(menuButtons: any, ctx: any, userId: number, cards
     const card = cards[currentIndex];
     const formattedCard = formattedText(card)
 
-    return await ctx.replyWithMarkdownV2(`📝 Card ${currentIndex + 1}:${formattedCard}`, menuButtons);
+    return await ctx.replyWithMarkdownV2(`📝 Card ${currentIndex + 1}:${formattedCard}`, {reply_markup: menuButtons});
 
 }
 
@@ -36,7 +36,7 @@ export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number,
 
     const buttonName = currentIndex === cards.length ? 'Last card' : 'Next card'
 
-    const sentMessage = await sendCard(learnCardsMenu(), ctx, userId, userCardState)
+    const sentMessage = await sendCard(learnCardsMenu, ctx, userId, userCardState)
 
     if (lastMessageId) {
         try {

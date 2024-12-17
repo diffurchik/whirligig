@@ -19,24 +19,19 @@ export const studyMenu = {
     },
 };
 
-export const learnCardsMenu = () => {
-    return {
-        reply_markup: {
-            inline_keyboard: [
-                [{text: 'Next card', callback_data: 'NEXT_CARD'}, {
-                    text: '✅ I learned it',
-                    callback_data: 'MARK_AS_LEARNED'
-                }],
-                [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}],
-                [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}]
+export const learnCardsMenu = {
+        inline_keyboard: [
+            [{text: 'Next card', callback_data: 'NEXT_CARD'}, {
+                text: '✅ I learned it',
+                callback_data: 'MARK_AS_LEARNED'
+            }],
+            [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}],
+            [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}]
 
-            ],
-        },
-    }
+        ],
 }
 
 export const randomCardMenu = {
-    reply_markup: {
         inline_keyboard: [
             [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}, {
                 text: '✅ I learned it',
@@ -45,13 +40,15 @@ export const randomCardMenu = {
             [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}]
 
         ],
-    },
 }
 
 export const addedCardMenu = {
     reply_markup: {
         inline_keyboard: [
-            [{text: "Add a new card", callback_data: 'ADD_NEW'}, {text: 'Edit this card', callback_data: 'EDIT_CARD'}, {text: 'Delete this card', callback_data: 'DELETE_CARD'}],
+            [{text: "Add a new card", callback_data: 'ADD_NEW'}, {
+                text: 'Edit this card',
+                callback_data: 'EDIT_CARD'
+            }, {text: 'Delete this card', callback_data: 'DELETE_CARD'}],
             [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
         ]
     }
@@ -64,7 +61,7 @@ export const settingsMenu = (isSendingRandomCard: boolean = false) => {
         reply_markup: {
             inline_keyboard: [
                 [{text: text, callback_data: 'NEXT_CARD'}],
-                [ {
+                [{
                     text: '🕙 Set time for the random card',
                     callback_data: 'SET_RANDOM_CARD_TIME'
                 }],
@@ -75,11 +72,11 @@ export const settingsMenu = (isSendingRandomCard: boolean = false) => {
 }
 
 export const cardSettingsMenu = {
-    reply_markup: {
-        inline_keyboard: [
-            [{text: '✏️ Edit card', callback_data: 'EDIT_CARD'}, {text: '🗑️ Delete card', callback_data: 'DELETE_CARD'}],
-        ]
-    }
+    inline_keyboard: [
+        [{text: '✏️ Edit card', callback_data: 'EDIT_CARD'}, {text: '🗑️ Delete card', callback_data: 'DELETE_CARD'}],
+        [{text: '🔙 Back to the card menu ', callback_data: 'CARD_MENU'}]
+    ]
+
 }
 
 export const confirmationMenu = {
@@ -95,6 +92,14 @@ export const backToMenus = {
         inline_keyboard: [
             [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
             [{text: '🔙 Back to the study menu ', callback_data: 'STUDY_MENU'}]
+        ]
+    }
+}
+
+export const backToSettingsMenu = {
+    reply_markup: {
+        inline_keyboard: [
+            [{text: '🔙  Back to settings menu', callback_data: 'SETTINGS'}],
         ]
     }
 }
