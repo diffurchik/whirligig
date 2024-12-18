@@ -1,13 +1,17 @@
 import {Card} from "./types";
 import {learnCardsMenu} from "./menus";
+import {escapeMarkdownV2} from "./helper";
 
 export const formattedText = (card: Partial<Card>): string => {
     let formattedCard = ''
+    const escapedEnglishPhrase = escapeMarkdownV2(card.english_phrase!)
+    const escapedTranslation = escapeMarkdownV2(card.translate!)
+    const escapedExample =  card.examples? escapeMarkdownV2(card.examples!): undefined
 
     if (card.examples) {
-        formattedCard = `\n\n*English Phrase* \n${card.english_phrase}\n\n\n*Translation*\n ${card.translate}\n\n\n*Example*\n ${card.examples}`;
+        formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n ${escapedTranslation}\n\n\n*Example*\n ${escapedExample}`;
     } else {
-        formattedCard = `\n\n*English Phrase* \n${card.english_phrase}\n\n\n*Translation*\n ${card.translate}`;
+        formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n ${escapedTranslation}`;
     }
 
     return formattedCard
