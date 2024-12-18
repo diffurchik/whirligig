@@ -82,7 +82,7 @@ export const cardSettingsMenu = {
 export const confirmationMenu = {
     reply_markup: {
         inline_keyboard: [
-            [{text: '✅ Yes', callback_data: 'YES_DELETE_CARD'}, {text: '🔙 No', callback_data: 'NO_DELETE_CARD'}],
+            [{text: '✅ Yes', callback_data: 'YES_DELETE_CARD'}, {text: '🔙 No', callback_data: 'BACK_TO_CARD'}],
         ]
     }
 }
@@ -102,4 +102,13 @@ export const backToSettingsMenu = {
             [{text: '🔙  Back to settings menu', callback_data: 'SETTINGS'}],
         ]
     }
+}
+
+export const editCardMenu = {
+    inline_keyboard: [
+        [{text: 'Edit English phrase', callback_data: 'EDIT_ENGLISH_PHRASE'}],
+        [{text: 'Edit translation', callback_data: 'EDIT_TRANSLATION'}],
+        [{text: 'Edit example', callback_data: 'EDIT_EXAMPLE'}],
+        [{text: '🔙 Back to card', callback_data: 'BACK_TO_CARD'}],
+    ]
 }

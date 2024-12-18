@@ -51,7 +51,7 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
             if (randomCard) {
                 await ctx.replyWithMarkdownV2("✨ *Scheduled Card* ✨")
                 cardsState[user_id] = {cards: [randomCard], currentIndex: 0};
-                await sendCard(randomCardMenu, ctx, user_id, cardsState);
+                await sendCard(randomCardMenu, ctx, cardsState);
             } else {
                 ctx.reply('There is not cards to study \n Click "Add new" to start education');
             }

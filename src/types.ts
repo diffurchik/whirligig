@@ -7,11 +7,20 @@ export interface MyWizardSession extends Scenes.WizardSessionData {
 }
 
 export type MyContext = Scenes.WizardContext<MyWizardSession>;
-export type actionsSteps = 'add_english_phrase' | 'add_translation' | 'add_examples' | 'edit_card' | 'set_random_time';
+export type actionsSteps =
+    'add_english_phrase'
+    | 'add_translation'
+    | 'add_examples'
+    | 'edit_card'
+    | 'set_random_time'
+    | 'edit_english_phrase'
+    | 'edit_translation'
+    | 'edit_examples';
 
 export type NewPhraseState = Partial<AddNewPhraseDB> & { step?: actionsSteps };
 
-export type CardType =  'random'| 'learning'
+export type CardType = 'random' | 'learning'
+
 export interface Message {
     message: string;
     created_at: string;

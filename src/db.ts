@@ -1,5 +1,5 @@
 import {Client} from "pg";
-import {UserSchedule} from "./types";
+import {Card, UserSchedule} from "./types";
 
 // const client = new Client({
 //     user: 'postgres',
@@ -87,6 +87,19 @@ export const markedCardAsLearned = async (cardId: number): Promise<void> => {
     }
 }
 
+export const updateCardData = async (columnName: string, updatedValue: string, userId: number, cardId:  number) => {
+    const query = `UPDATE user_cards
+                   SET ${columnName} = $1
+                   WHERE user_id=${userId} AND id=${cardId}`;
+
+    try {
+        const res = await client.query(query, [updatedValue]);
+    } catch (err) {
+        console.error('Error fetching data', err);
+        throw new Error()
+    }
+}
+
 export const insertRandomCardTime = async (user_id: number, rand_card_time: string, show_random_card: boolean,) => {
     const query = `INSERT INTO user_settings (rand_card_time, show_random_card, user_id)
                    VALUES ($1, $2, $3)
@@ -104,7 +117,7 @@ export const insertRandomCardTime = async (user_id: number, rand_card_time: stri
 export const updateRandomCardTime = async (user_id: number, rand_card_time: string, show_random_card: boolean,) => {
     const query = `UPDATE user_settings
                    SET rand_card_time=$1
-                   WHERE  user_id=$2`;
+                   WHERE user_id = $2`;
     console.log('Query inserted: ', query);
     try {
         const res = await client.query(query, [rand_card_time, user_id]);
@@ -129,7 +142,8 @@ export const getAllUserSchedules = async (): Promise<UserSchedule[] | undefined>
 export const getScheduleByUser = async (user_id: number): Promise<UserSchedule[] | undefined> => {
     const query = `SELECT *
                    FROM user_settings
-                   WHERE show_random_card is true AND user_id = $1`;
+                   WHERE show_random_card is true
+                     AND user_id = $1`;
     try {
         const res = await client.query(query, [user_id]);
         return res.rows;

@@ -14,11 +14,12 @@ export const formattedText = (card: Partial<Card>): string => {
 }
 
 
-export async function sendCard(menuButtons: any, ctx: any, userId: number, cardsState: Record<number, {
+export async function sendCard(menuButtons: any, ctx: any, cardsState: Record<number, {
     cards: Card[];
     currentIndex: number,
     lastMessageId?: number
 }>) {
+    const userId = ctx.from.id;
     const {cards, currentIndex} = cardsState[userId];
     const card = cards[currentIndex];
     const formattedCard = formattedText(card)
@@ -36,7 +37,7 @@ export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number,
 
     const buttonName = currentIndex === cards.length ? 'Last card' : 'Next card'
 
-    const sentMessage = await sendCard(learnCardsMenu, ctx, userId, userCardState)
+    const sentMessage = await sendCard(learnCardsMenu, ctx, userCardState)
 
     if (lastMessageId) {
         try {
