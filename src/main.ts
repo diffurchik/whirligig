@@ -22,7 +22,6 @@ import {
 import {formattedText, sendCard, sendCardAndDeletePreviousMessage} from "./card";
 import {loadSchedules, scheduleCard, setRandomCardTime} from "./schedule";
 import {escapeMarkdownV2} from "./helper";
-import {text} from "node:stream/consumers";
 
 // const BOT_TOKEN = '8084776606:AAGDCeqWhkYN7tXcZoDjLy0Eq8W3Ip3Wc0M'; // test
 const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM'; // prod
@@ -117,7 +116,7 @@ bot.action('NEXT_CARD', async (ctx) => {
     const userId = ctx.from.id;
     const userCardsByUser = cardsState[userId]
     if (!userCardsByUser) {
-        ctx.reply('No Card found');
+        ctx.reply('No Card found', backToMenus);
         return
     }
 
@@ -151,7 +150,12 @@ bot.action('MARK_AS_LEARNED', async (ctx) => {
 bot.action('EDIT_CARD', async (ctx) => {
     const userId = ctx.from.id;
     const {cards, currentIndex} = cardsState[userId]
-    const id = cards[currentIndex].id
+    if(currentIndex > cards.length - 1 ) { // TODO: rewrite this awful logic!
+        const id = cards[currentIndex - 1].id
+    } else {
+        const id = cards[currentIndex].id
+
+    }
 
     userActionState[userId] = {username: ctx.from.username, step: 'edit_card'};
     ctx.editMessageText('Choose what you want to edit', {reply_markup: editCardMenu})
@@ -195,8 +199,13 @@ bot.action('EDIT_ENGLISH_PHRASE', async (ctx) => {
     const username = ctx.from.username;
     userActionState[userId] = {username: username, step: 'edit_english_phrase'};
     const {cards, currentIndex} = cardsState[userId]
-    const oldPhrase = cards[currentIndex].english_phrase
-    await ctx.reply(`✏️ Your old phrase: ${oldPhrase}\n Enter a new phrase`, {reply_markup: {force_reply: true}})
+    let oldPhrase: string | undefined
+    if(currentIndex > cards.length - 1) { // TODO: rewrite this awful logic!
+        oldPhrase = escapeMarkdownV2(cards[currentIndex - 1].english_phrase)
+    } else {
+        oldPhrase = escapeMarkdownV2(cards[currentIndex].english_phrase)
+    }
+    await ctx.replyWithMarkdownV2(`✏️ Your old phrase:\n \`${oldPhrase}\`\n\n Enter a new phrase`, {reply_markup: {force_reply: true}})
 })
 
 bot.action('EDIT_TRANSLATION', async (ctx) => {
@@ -204,8 +213,13 @@ bot.action('EDIT_TRANSLATION', async (ctx) => {
     const username = ctx.from.username;
     userActionState[userId] = {username: username, step: 'edit_translation'};
     const {cards, currentIndex} = cardsState[userId]
-    const oldPhrase = cards[currentIndex].translate
-    await ctx.reply(`✏️ Your old translation: ${oldPhrase}\n Enter a new translation`, {reply_markup: {force_reply: true}})
+    let oldPhrase: string | undefined
+    if(currentIndex > cards.length - 1) { // TODO: rewrite this awful logic!
+        oldPhrase = escapeMarkdownV2(cards[currentIndex - 1].translate)
+    } else {
+        oldPhrase = escapeMarkdownV2(cards[currentIndex].translate)
+    }
+    await ctx.replyWithMarkdownV2(`✏️ Your old translation:\n \`${oldPhrase}\`\n\n Enter a new translation`, {reply_markup: {force_reply: true}})
 })
 
 bot.action('EDIT_EXAMPLE', async (ctx) => {
@@ -213,8 +227,13 @@ bot.action('EDIT_EXAMPLE', async (ctx) => {
     const username = ctx.from.username;
     userActionState[userId] = {username: username, step: 'edit_examples'};
     const {cards, currentIndex} = cardsState[userId]
-    const oldPhrase = cards[currentIndex].examples
-    await ctx.reply(`✏️ Your old example: ${oldPhrase}\n Enter a new example`, {reply_markup: {force_reply: true}})
+    let oldPhrase: string | undefined
+    if(currentIndex > cards.length - 1) { // TODO: rewrite this awful logic!
+        oldPhrase = cards[currentIndex - 1].examples
+    } else {
+        oldPhrase = cards[currentIndex].examples
+    }
+    await ctx.reply(`✏️ Your old example:\n \`${oldPhrase}\`\n\n Enter a new example`, {reply_markup: {force_reply: true}})
 })
 
 bot.action('BACK_TO_CARD', async (ctx) => {
@@ -252,14 +271,14 @@ bot.on(message('text'), async (ctx) => {
     let state = userActionState[userId]
 
     if (state.step === 'add_english_phrase') {
-        userActionState[userId].englishPhrase = escapeMarkdownV2(ctx.message.text);
+        userActionState[userId].englishPhrase = ctx.message.text
         userActionState[userId].step = 'add_translation'
         await ctx.reply('Got it 👍 \nNow, please enter the translation for it:', {reply_markup: {force_reply: true}});
         return;
     }
 
     if (state.step === 'add_translation') {
-        userActionState[userId].translation = escapeMarkdownV2(ctx.message.text);
+        userActionState[userId].translation = ctx.message.text
         await ctx.replyWithMarkdownV2('All set 📌\nClick `"Add examples"` if you want to add examples of use or Click `"Finish"` to save it', {
             reply_markup: {
                 inline_keyboard: [
@@ -273,7 +292,7 @@ bot.on(message('text'), async (ctx) => {
     }
 
     if (state.step === 'add_examples') {
-        userActionState[userId].examples = escapeMarkdownV2(ctx.message.text);
+        userActionState[userId].examples = ctx.message.text
         await ctx.replyWithMarkdownV2('All set 📌\n Click `"Finish"` to save it', {
             reply_markup: {
                 inline_keyboard: [
@@ -313,7 +332,12 @@ bot.on(message('text'), async (ctx) => {
     if (state.step === 'edit_english_phrase') {
         const newPhrase = ctx.message.text;
         const {cards, currentIndex} = cardsState[userId]
-        const cardId = cards[currentIndex].id
+        let cardId: number
+        if(currentIndex > cards.length - 1) { // TODO: rewrite this awful logic!
+            cardId = cards[currentIndex - 1 ].id
+        } else {
+            cardId = cards[currentIndex].id
+        }
         try {
             await updateCardData('english_phrase', newPhrase, userId, cardId);
             cards[currentIndex].english_phrase = newPhrase;
@@ -327,7 +351,12 @@ bot.on(message('text'), async (ctx) => {
     if (state.step === 'edit_translation') {
         const newTranslation = ctx.message.text;
         const {cards, currentIndex} = cardsState[userId]
-        const cardId = cards[currentIndex].id
+        let cardId: number
+        if(currentIndex > cards.length - 1) { // TODO: rewrite this awful logic!
+            cardId = cards[currentIndex - 1 ].id
+        } else {
+            cardId = cards[currentIndex].id
+        }
         try {
             await updateCardData('translate', newTranslation, userId, cardId);
             cards[currentIndex].translate = newTranslation;
@@ -340,7 +369,12 @@ bot.on(message('text'), async (ctx) => {
     if (state.step === 'edit_examples') {
         const newExamples = ctx.message.text;
         const {cards, currentIndex} = cardsState[userId]
-        const cardId = cards[currentIndex].id
+        let cardId: number
+        if(currentIndex > cards.length - 1) { // TODO: rewrite this awful logic!
+            cardId = cards[currentIndex - 1 ].id
+        } else {
+            cardId = cards[currentIndex].id
+        }
         try {
             await updateCardData('examples', newExamples, userId, cardId);
             cards[currentIndex].examples = newExamples;
