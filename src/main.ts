@@ -42,6 +42,40 @@ const cardsState: Record<number, {
 bot.start((ctx) => ctx.reply('Welcome to the bot! Choose an option:', mainMenu
 ));
 
+bot.telegram.setMyCommands([
+    { command: 'start', description: 'Start the bot' },
+    { command: 'add_card', description: 'Add a new card' },
+    { command: 'study', description: 'Study your cards' },
+    { command: 'random_card', description: 'Get a random card' },
+    { command: 'help', description: 'Get help' }
+]);
+
+bot.command('add_card', async (ctx) => {
+    const userId = ctx.from.id;
+    const username = ctx.from.username;
+    userActionState[userId] = {username: username, step: 'add_english_phrase'};
+    await ctx.reply('🖖 Please, enter the English phrase you want to learn', {reply_markup: {force_reply: true}})
+})
+
+bot.command('study', async (ctx) => {
+    await ctx.reply("Choose an option from the Study menu:", studyMenu)
+})
+
+bot.command('random_card', async (ctx) => {
+    const userId = ctx.from.id;
+    const card = await getRandomCardByUserId(userId)
+    if (card) {
+        cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};
+        await sendCard(randomCardMenu, ctx, cardsState);
+    } else {
+        ctx.reply('There is not cards to study \n Click "Add new" to start education');
+    }
+})
+
+bot.command('help', async (ctx) => {
+    await ctx.reply('Please, write @diffurchik if you have any troubles');
+})
+
 bot.action('ADD_NEW', async (ctx) => {
 
     const userId = ctx.from.id;

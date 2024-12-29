@@ -120,7 +120,7 @@ export const updateRandomCardTime = async (user_id: number, rand_card_time: stri
                    WHERE user_id = $2`;
     console.log('Query inserted: ', query);
     try {
-        const res = await client.query(query, [rand_card_time, user_id]);
+        await client.query(query, [rand_card_time, user_id]);
         console.log('Updated a schedule with user ID:', user_id);
     } catch (err) {
         throw new Error();

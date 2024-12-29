@@ -24,6 +24,7 @@ export async function loadSchedules(ctx: any, cardState: Record<number, {
             scheduleCard(schedule, ctx, cardState)
         })
     }
+    console.log('scheduledJobs', scheduledJobs)
 }
 
 export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Record<number, {
@@ -62,7 +63,7 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
 export async function setRandomCardTime(userId: number, time: string, showRandomCard: boolean) {
     const scheduleByUser = await getScheduleByUser(userId)
     let id: number | undefined
-    if (!scheduleByUser) {
+    if (!scheduleByUser || scheduleByUser.length === 0) {
        id = await insertRandomCardTime(userId, time, showRandomCard);
     } else {
         await updateRandomCardTime(userId, time, showRandomCard);
