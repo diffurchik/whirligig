@@ -49,6 +49,7 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
     scheduledJobs[user_id] = cron.schedule(
         cronExpression, async () => {
             const randomCard = await getRandomCardByUserId(user_id);
+            console.log('randomCard', randomCard)
             if (randomCard) {
                 await ctx.replyWithMarkdownV2("✨ *Scheduled Card* ✨")
                 cardsState[user_id] = {cards: [randomCard], currentIndex: 0};
