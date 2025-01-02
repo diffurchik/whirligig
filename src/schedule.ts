@@ -7,8 +7,8 @@ import {
 } from "./db";
 import {Card, UserSchedule} from "./types";
 import cron from 'node-cron';
-import {sendCard} from "./card";
-import {randomCardMenu} from "./menus";
+import {sendCard} from "./bot/card";
+import {randomCardMenu} from "./bot/menus";
 import { ScheduledTask } from 'node-cron'
 
 const scheduledJobs: Record<number, ScheduledTask> = {};
@@ -32,7 +32,7 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
     currentIndex: number,
     lastMessageId?: number
 }>) {
-    const {user_id, rand_card_time, show_random_card, timezone = 'UTC'} = schedule
+    const {user_id, rand_card_time, show_random_card} = schedule
 
     if(!show_random_card){
         return

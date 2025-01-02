@@ -1,5 +1,11 @@
 import {Scenes} from "telegraf";
 
+
+export interface UserData {
+    userId?: number
+    username?: string
+}
+
 export interface MyWizardSession extends Scenes.WizardSessionData {
     myWizardSessionProp: number;
     englishPhrase: string
@@ -7,17 +13,19 @@ export interface MyWizardSession extends Scenes.WizardSessionData {
 }
 
 export type MyContext = Scenes.WizardContext<MyWizardSession>;
-export type actionsSteps =
-    'add_english_phrase'
-    | 'add_translation'
-    | 'add_examples'
-    | 'edit_card'
-    | 'set_random_time'
-    | 'edit_english_phrase'
-    | 'edit_translation'
-    | 'edit_examples';
 
-export type NewPhraseState = Partial<AddNewPhraseDB> & { step?: actionsSteps };
+export enum ActionSteps {
+    AddEnglishPhrase = 'add_english_phrase',
+    AddTranslation = 'add_translation',
+    AddExamples = 'add_examples',
+    EditCard = 'edit_card',
+    SetRandomTime = 'set_random_time',
+    EditEnglishPhrase = 'edit_english_phrase',
+    EditTranslation = 'edit_translation',
+    EditExamples = 'edit_examples',
+}
+
+export type NewPhraseState = Partial<AddNewPhraseDB> & { step?: ActionSteps };
 
 export type CardType = 'random' | 'learning'
 
@@ -52,4 +60,13 @@ export type UserSchedule = {
     show_random_card: boolean;
     timezone: string;
 }
+
+export type CardStatesType = Record<number, {
+    cards: Card[];
+    currentIndex: number,
+    lastMessageId?: number,
+    cardType?: CardType
+}>
+
+export type UserStatesType = Record<number, Partial<NewPhraseState>>
 

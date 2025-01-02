@@ -1,5 +1,5 @@
 import {Composer, Markup, Scenes} from "telegraf";
-import {MyContext, MyWizardSession} from "./types";
+import {MyContext, MyWizardSession} from "../types";
 
 const stepHandler = new Composer<MyContext>();
 

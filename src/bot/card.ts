@@ -1,6 +1,6 @@
-import {Card} from "./types";
+import {Card} from "../types";
 import {learnCardsMenu} from "./menus";
-import {escapeMarkdownV2} from "./helper";
+import {escapeMarkdownV2} from "../helper";
 
 export const formattedText = (card: Partial<Card>): string => {
     let formattedCard = ''
