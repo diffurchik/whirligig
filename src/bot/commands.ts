@@ -2,7 +2,7 @@ import {randomCardMenu, studyMenu} from "./menus";
 import {getRandomCardByUserId} from "../db";
 import {sendCard} from "./card";
 import {Context, Telegraf} from "telegraf";
-import {CardStatesType, MyContext, UserStatesType} from "../types";
+import {ActionSteps, CardStatesType, MyContext, UserStatesType} from "../types";
 import {getUserData} from "../helper";
 
 export const botCommands = (bot: Telegraf<MyContext>, userActionState: UserStatesType, cardsState: CardStatesType) => {
@@ -17,7 +17,7 @@ export const botCommands = (bot: Telegraf<MyContext>, userActionState: UserState
     bot.command('add_card', async (ctx: Context) => {
         const {userId, username} = getUserData(ctx)
         if(userId){
-            userActionState[userId] = {username: username, step: 'add_english_phrase'};
+            userActionState[userId] = {username: username, step: ActionSteps.AddEnglishPhrase};
             await ctx.reply('🖖 Please, enter the English phrase you want to learn', {reply_markup: {force_reply: true}})
         }
     })
