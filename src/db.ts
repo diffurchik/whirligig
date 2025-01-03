@@ -1,20 +1,20 @@
 import {Client} from "pg";
 import {Card, UserScheduleType} from "./types";
 
-// const client = new Client({
-//     user: 'postgres',
-//     host: 'localhost',
-//     database: 'botdb',
-//     password: 'yourpassword',
-//     port: 5432,
-// });
-
 const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-    },
+    user: 'postgres',
+    host: 'localhost',
+    database: 'botdb',
+    password: 'yourpassword',
+    port: 5432,
 });
+
+// const client = new Client({
+//     connectionString: process.env.DATABASE_URL,
+//     ssl: {
+//         rejectUnauthorized: false,
+//     },
+// });
 
 client.connect()
     .then(() => console.log('Connected to the PostgreSQL database'))

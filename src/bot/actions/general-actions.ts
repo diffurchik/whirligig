@@ -30,8 +30,9 @@ export const botActions = (bot: Telegraf<MyContext>, userActionState: UserStates
         if (userId) {
             const userSchedule = await getScheduleByUser(userId)
             if (userSchedule && userSchedule.length > 0) {
-                const isSendingRandomCard = userSchedule[0].show_random_card
-                await ctx.editMessageText("Your current settings", settingsMenu(isSendingRandomCard))
+                const {show_random_card, rand_card_time} = userSchedule[0]
+                const text: string = `Your current settings is: \n\n ▪️Send a random card daily: ${show_random_card}\n ▪️Time to send a random card: ${rand_card_time}`
+                await ctx.editMessageText(text, settingsMenu(show_random_card))
             }
         }
     })
@@ -104,7 +105,7 @@ export const botActions = (bot: Telegraf<MyContext>, userActionState: UserStates
             if (userSchedule && userSchedule.length > 0) {
                 const {show_random_card, rand_card_time} = userSchedule[0]
                 await updateShowRandomCardDaily(userId, !show_random_card)
-                const text: string = !show_random_card? `You will get a random card daily at ${rand_card_time}` : 'You will not get a random card daily'
+                const text: string = !show_random_card ? `You will get a random card daily at ${rand_card_time}` : 'You will not get a random card daily'
                 await ctx.editMessageText(text, settingsMenu(!show_random_card))
             }
         }
