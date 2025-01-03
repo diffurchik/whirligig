@@ -1,7 +1,7 @@
 import {CardStatesType, MyContext} from "../../types";
 import {Context, Telegraf} from "telegraf";
 import {backToMenus, learnCardsMenu, randomCardMenu} from "../menus";
-import {sendCard, sendCardAndDeletePreviousMessage} from "../card";
+import {sendCardViaContext, sendCardAndDeletePreviousMessage} from "../card";
 import {getNotLearnedPhrasesByUserName, getRandomCardByUserId, markedCardAsLearned} from "../../db";
 import {getUserData} from "../../helper";
 
@@ -12,7 +12,7 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
         const card = await getRandomCardByUserId(userId)
         if (card) {
             cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};
-            await sendCard(randomCardMenu, ctx, cardsState);
+            await sendCardViaContext(randomCardMenu, ctx, cardsState);
         } else {
             ctx.reply('There is not cards to study \n Click "Add new" to start education');
         }
@@ -41,7 +41,7 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
 
 
             if (userCardsByUser.currentIndex < userCardsByUser.cards.length) {
-                const sentMessage = await sendCard(learnCardsMenu, ctx, cardsState);
+                const sentMessage = await sendCardViaContext(learnCardsMenu, ctx, cardsState);
                 if (userCardsByUser.lastMessageId) {
                     try {
                         await ctx.deleteMessage(userCardsByUser.lastMessageId);

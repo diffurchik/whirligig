@@ -5,33 +5,26 @@ import {
     insertRandomCardTime,
     updateRandomCardTime
 } from "./db";
-import {Card, UserSchedule} from "./types";
+import {CardStatesType, MyContext, UserScheduleType} from "./types";
 import cron from 'node-cron';
-import {sendCard} from "./bot/card";
+import {sendCardViaBot, sendCardViaContext} from "./bot/card";
 import {randomCardMenu} from "./bot/menus";
 import { ScheduledTask } from 'node-cron'
+import {Context, Telegraf} from "telegraf";
 
 const scheduledJobs: Record<number, ScheduledTask> = {};
 
-export async function loadSchedules(ctx: any, cardState: Record<number, {
-    cards: Card[];
-    currentIndex: number,
-    lastMessageId?: number
-}>) {
+export async function loadSchedules(ctx: any, cardState: CardStatesType, bot: Telegraf<MyContext>) {
     const schedules = await getAllUserSchedules()
     if (schedules && schedules.length !== 0) {
         schedules.forEach((schedule) => {
-            scheduleCard(schedule, ctx, cardState)
+            scheduleCard(schedule, ctx, cardState, bot)
         })
     }
     console.log('scheduledJobs', scheduledJobs)
 }
 
-export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Record<number, {
-    cards: Card[];
-    currentIndex: number,
-    lastMessageId?: number
-}>) {
+export function scheduleCard(schedule: UserScheduleType, ctx: Context, cardsState: CardStatesType, bot: Telegraf<MyContext>) {
     const {user_id, rand_card_time, show_random_card} = schedule
 
     if(!show_random_card){
@@ -51,11 +44,12 @@ export function scheduleCard(schedule: UserSchedule, ctx: any, cardsState: Recor
             const randomCard = await getRandomCardByUserId(user_id);
             console.log('randomCard', randomCard)
             if (randomCard) {
-                await ctx.replyWithMarkdownV2("✨ *Scheduled Card* ✨")
-                cardsState[user_id] = {cards: [randomCard], currentIndex: 0};
-                await sendCard(randomCardMenu, ctx, cardsState);
+                console.log('ctx', ctx)
+                await bot.telegram.sendMessage(user_id, "✨ *Scheduled Card* ✨", { parse_mode: 'MarkdownV2' })
+
+                await sendCardViaBot(randomCardMenu, randomCard, bot, user_id);
             } else {
-                ctx.reply('There is not cards to study \n Click "Add new" to start education');
+                await ctx.reply('There is not cards to study \n Click "Add new" to start education');
             }
         }
     )

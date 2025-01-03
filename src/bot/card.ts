@@ -1,12 +1,13 @@
-import {Card} from "../types";
+import {Card, CardStatesType, MyContext} from "../types";
 import {learnCardsMenu} from "./menus";
 import {escapeMarkdownV2} from "../helper";
+import {Context, Telegraf} from "telegraf";
 
 export const formattedText = (card: Partial<Card>): string => {
-    let formattedCard = ''
+    let formattedCard: string
     const escapedEnglishPhrase = escapeMarkdownV2(card.english_phrase!)
     const escapedTranslation = escapeMarkdownV2(card.translate!)
-    const escapedExample =  card.examples? escapeMarkdownV2(card.examples!): undefined
+    const escapedExample = card.examples ? escapeMarkdownV2(card.examples!) : undefined
 
     if (card.examples) {
         formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n ${escapedTranslation}\n\n\n*Example*\n ${escapedExample}`;
@@ -18,30 +19,27 @@ export const formattedText = (card: Partial<Card>): string => {
 }
 
 
-export async function sendCard(menuButtons: any, ctx: any, cardsState: Record<number, {
-    cards: Card[];
-    currentIndex: number,
-    lastMessageId?: number
-}>) {
-    const userId = ctx.from.id;
-    const {cards, currentIndex} = cardsState[userId];
-    const card = cards[currentIndex];
-    const formattedCard = formattedText(card)
+export async function sendCardViaContext(menuButtons: any, cardsState: CardStatesType, ctx?: Context) {
+    const userId: number | undefined = ctx?.from?.id
+    if (userId) {
+        const {cards, currentIndex} = cardsState[userId];
+        const card = cards[currentIndex];
+        const formattedCard = formattedText(card)
 
-    return await ctx.replyWithMarkdownV2(`📝 Card ${currentIndex + 1}:${formattedCard}`, {reply_markup: menuButtons});
+        return await ctx!.replyWithMarkdownV2(`📝 Card ${currentIndex + 1}:${formattedCard}`, {reply_markup: menuButtons});
+    }
+}
+
+export async function sendCardViaBot(menuButtons: any, card: Card, bot: Telegraf<MyContext>, chatId: number) {
+    const formattedCard = formattedText(card)
+    return await bot.telegram.sendMessage(chatId, `📝 Card :${formattedCard}`, {reply_markup: menuButtons, parse_mode: "MarkdownV2"})
 
 }
 
-export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number, userCardState: Record<number, {
-    cards: Card[];
-    currentIndex: number,
-    lastMessageId?: number
-}>) {
-    const {cards, currentIndex, lastMessageId} = userCardState[userId];
+export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number, cardsState: CardStatesType) {
+    const {lastMessageId} = cardsState[userId];
 
-    const buttonName = currentIndex === cards.length ? 'Last card' : 'Next card'
-
-    const sentMessage = await sendCard(learnCardsMenu, ctx, userCardState)
+    const sentMessage = await sendCardViaContext(learnCardsMenu, cardsState, ctx)
 
     if (lastMessageId) {
         try {
@@ -51,5 +49,7 @@ export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number,
         }
     }
 
-    userCardState[userId].lastMessageId = sentMessage.message_id;
+    if (sentMessage) {
+        cardsState[userId].lastMessageId = sentMessage.message_id;
+    }
 }

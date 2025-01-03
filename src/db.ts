@@ -1,5 +1,5 @@
 import {Client} from "pg";
-import {Card, UserSchedule} from "./types";
+import {Card, UserScheduleType} from "./types";
 
 // const client = new Client({
 //     user: 'postgres',
@@ -127,7 +127,7 @@ export const updateRandomCardTime = async (user_id: number, rand_card_time: stri
     }
 }
 
-export const getAllUserSchedules = async (): Promise<UserSchedule[] | undefined> => {
+export const getAllUserSchedules = async (): Promise<UserScheduleType[] | undefined> => {
     const query = `SELECT *
                    FROM user_settings
                    WHERE show_random_card is true`;
@@ -139,7 +139,7 @@ export const getAllUserSchedules = async (): Promise<UserSchedule[] | undefined>
     }
 }
 
-export const getScheduleByUser = async (user_id: number): Promise<UserSchedule[] | undefined> => {
+export const getScheduleByUser = async (user_id: number): Promise<UserScheduleType[] | undefined> => {
     const query = `SELECT *
                    FROM user_settings
                    WHERE show_random_card is true

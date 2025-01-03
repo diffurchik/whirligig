@@ -2,14 +2,14 @@ import {Telegraf} from 'telegraf';
 import {
     updateCardData,
 } from './db';
-import {ActionSteps, CardStatesType, MyContext, NewPhraseState} from './types'
+import {ActionSteps, CardStatesType, MyContext, NewPhraseState, UserScheduleType} from './types'
 import {message} from "telegraf/filters";
 import {
     backToSettingsMenu,
     editCardMenu,
     mainMenu,
 } from "./bot/menus";
-import {sendCard} from "./bot/card";
+import {sendCardViaContext} from "./bot/card";
 import {loadSchedules, scheduleCard, setRandomCardTime} from "./schedule";
 import {escapeMarkdownV2, getCurrentCard} from "./helper";
 import {botActions} from "./bot/actions/general-actions";
@@ -32,8 +32,9 @@ cardActions(bot, userActionState, cardsState)
 studyActions(bot, cardsState)
 botCommands(bot, userActionState, cardsState)
 
-bot.start((ctx) => ctx.reply('Welcome to the bot! Choose an option:', mainMenu
-));
+bot.start((ctx) =>
+    ctx.reply('Welcome to the bot! Choose an option:', mainMenu
+    ));
 
 
 bot.on(message('text'), async (ctx) => {
@@ -93,14 +94,15 @@ bot.on(message('text'), async (ctx) => {
         }
 
         const id = await setRandomCardTime(userId, time, true)
-
-        scheduleCard({
+        const userSchedule: UserScheduleType = {
             id: id,
             user_id: ctx.from.id,
             show_random_card: true,
             rand_card_time: time,
             timezone: 'UTC'
-        }, ctx, cardsState)
+        }
+
+        scheduleCard(userSchedule, ctx, cardsState, bot)
         const message = escapeMarkdownV2(`Got it! I'll send you a random card daily at ${time}`)
         await ctx.replyWithMarkdownV2(message, backToSettingsMenu);
     }
@@ -113,7 +115,7 @@ bot.on(message('text'), async (ctx) => {
         try {
             await updateCardData('english_phrase', newPhrase, userId, cardId);
             cards[currentIndex].english_phrase = newPhrase;
-            await sendCard(editCardMenu, ctx, cardsState)
+            await sendCardViaContext(editCardMenu, cardsState, ctx)
         } catch {
             ctx.reply('Something went wrong', {reply_markup: editCardMenu});
         }
@@ -128,7 +130,7 @@ bot.on(message('text'), async (ctx) => {
         try {
             await updateCardData('translate', newTranslation, userId, cardId);
             cards[currentIndex].translate = newTranslation;
-            await sendCard(editCardMenu, ctx, cardsState)
+            await sendCardViaContext(editCardMenu, cardsState, ctx)
         } catch {
             ctx.reply('Something went wrong, please try again', {reply_markup: editCardMenu});
         }
@@ -142,7 +144,7 @@ bot.on(message('text'), async (ctx) => {
         try {
             await updateCardData('examples', newExamples, userId, cardId);
             cards[currentIndex].examples = newExamples;
-            await sendCard(editCardMenu, ctx, cardsState)
+            await sendCardViaContext(editCardMenu, cardsState, ctx)
         } catch {
             ctx.reply('Something went wrong, please try again', {reply_markup: editCardMenu});
         }
@@ -156,7 +158,7 @@ bot.launch(() => {
 });
 
 if (bot) bot.telegram.getMe().then(async (ctx) => {
-    await loadSchedules(ctx, cardsState)
+    await loadSchedules(ctx, cardsState, bot)
 })
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

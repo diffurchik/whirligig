@@ -1,6 +1,6 @@
 import {randomCardMenu, studyMenu} from "./menus";
 import {getRandomCardByUserId} from "../db";
-import {sendCard} from "./card";
+import {sendCardViaContext} from "./card";
 import {Context, Telegraf} from "telegraf";
 import {ActionSteps, CardStatesType, MyContext, UserStatesType} from "../types";
 import {getUserData} from "../helper";
@@ -32,7 +32,7 @@ export const botCommands = (bot: Telegraf<MyContext>, userActionState: UserState
             const card = await getRandomCardByUserId(userId)
             if (card) {
                 cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};
-                await sendCard(randomCardMenu, ctx, cardsState);
+                await sendCardViaContext(randomCardMenu, ctx, cardsState);
             } else {
                 ctx.reply('There is not cards to study \n Click "Add new" to start education');
             }

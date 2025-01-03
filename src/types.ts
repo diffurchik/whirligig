@@ -53,7 +53,7 @@ export type Card = {
     learned: boolean
 }
 
-export type UserSchedule = {
+export type UserScheduleType = {
     id?: number;
     user_id: number;
     rand_card_time: string;

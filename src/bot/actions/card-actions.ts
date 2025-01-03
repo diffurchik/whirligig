@@ -11,7 +11,7 @@ import {
 } from "../menus";
 import {deleteCardFromDB} from "../../db";
 import {escapeMarkdownV2, getCurrentCard, getUserData} from "../../helper";
-import {sendCard} from "../card";
+import {sendCardViaContext} from "../card";
 
 export const cardActions = (bot: Telegraf<MyContext>, userActionState: UserStatesType, cardsState: CardStatesType) => {
     bot.action('SET_RANDOM_CARD_TIME', async (ctx: Context) => {
@@ -116,7 +116,7 @@ export const cardActions = (bot: Telegraf<MyContext>, userActionState: UserState
                 if (cardsState[userId].cardType === 'learning' && cardsState[userId].currentIndex > 1) {
                     cardsState[userId].currentIndex--
                 }
-                await sendCard(menu, ctx, cardsState);
+                await sendCardViaContext(menu, cardsState, ctx);
             } catch (error) {
                 console.error(error)
                 await ctx.editMessageText("Something went wrong. Please, try again or write @diffurchik", mainMenu)
