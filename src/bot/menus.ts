@@ -55,12 +55,12 @@ export const addedCardMenu = {
 }
 
 export const settingsMenu = (isSendingRandomCard: boolean = false) => {
-    const text: string = isSendingRandomCard ? '🛑 I don\'t want to get random card daily' : ` 💬 Send me a random card daily`
+    const text: string = isSendingRandomCard ? '🛑 I don\'t want to get random card daily' : ` 🤓 Send me a random card daily`
 
     return {
         reply_markup: {
             inline_keyboard: [
-                [{text: text, callback_data: 'NEXT_CARD'}],
+                [{text: text, callback_data: 'SET_SENDING_RANDOM_CARD'}],
                 [{
                     text: '🕙 Set time for the random card',
                     callback_data: 'SET_RANDOM_CARD_TIME'

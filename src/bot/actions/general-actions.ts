@@ -1,7 +1,7 @@
 import {Context, Telegraf} from 'telegraf';
 import {addedCardMenu, backToMenus, mainMenu, settingsMenu, studyMenu} from "../menus";
 import {formattedText} from "../card";
-import {getAllCardsByUserId, insertPhrase,} from "../../db";
+import {getAllCardsByUserId, getScheduleByUser, insertPhrase, updateShowRandomCardDaily,} from "../../db";
 import {escapeMarkdownV2, getUserData} from "../../helper";
 import {ActionSteps, Card, CardStatesType, MyContext, UserStatesType} from "../../types";
 
@@ -26,7 +26,14 @@ export const botActions = (bot: Telegraf<MyContext>, userActionState: UserStates
     })
 
     bot.action('SETTINGS', async (ctx: Context) => {
-        await ctx.editMessageText("Your current settings", settingsMenu())
+        const {userId} = getUserData(ctx)
+        if (userId) {
+            const userSchedule = await getScheduleByUser(userId)
+            if (userSchedule && userSchedule.length > 0) {
+                const isSendingRandomCard = userSchedule[0].show_random_card
+                await ctx.editMessageText("Your current settings", settingsMenu(isSendingRandomCard))
+            }
+        }
     })
 
     bot.action('EXAMPLES', async (ctx: Context) => {
@@ -87,6 +94,27 @@ export const botActions = (bot: Telegraf<MyContext>, userActionState: UserStates
                 await ctx.editMessageText(text, backToMenus);
 
             }
+        }
+    })
+
+    bot.action('SET_SENDING_RANDOM_CARD', async (ctx: Context) => {
+        const {userId} = getUserData(ctx)
+        if (userId) {
+            const userSchedule = await getScheduleByUser(userId)
+            if (userSchedule && userSchedule.length > 0) {
+                const {show_random_card, rand_card_time} = userSchedule[0]
+                await updateShowRandomCardDaily(userId, !show_random_card)
+                const text: string = !show_random_card? `You will get a random card daily at ${rand_card_time}` : 'You will not get a random card daily'
+                await ctx.editMessageText(text, settingsMenu(!show_random_card))
+            }
+        }
+    })
+
+    bot.action('SET_RANDOM_CARD_TIME', async (ctx: Context) => {
+        const {userId, username} = getUserData(ctx)
+        await ctx.reply("At what time (HH:MM, 24-hour format) should I send you a random card daily?", {reply_markup: {force_reply: true}})
+        if (userId) {
+            userActionState[userId] = {username: username, step: ActionSteps.SetRandomTime};
         }
     })
 };

@@ -7,7 +7,7 @@ import {
 } from "./db";
 import {CardStatesType, MyContext, UserScheduleType} from "./types";
 import cron from 'node-cron';
-import {sendCardViaBot, sendCardViaContext} from "./bot/card";
+import {sendCardViaBot} from "./bot/card";
 import {randomCardMenu} from "./bot/menus";
 import { ScheduledTask } from 'node-cron'
 import {Context, Telegraf} from "telegraf";
@@ -61,7 +61,7 @@ export async function setRandomCardTime(userId: number, time: string, showRandom
     if (!scheduleByUser || scheduleByUser.length === 0) {
        id = await insertRandomCardTime(userId, time, showRandomCard);
     } else {
-        await updateRandomCardTime(userId, time, showRandomCard);
+        await updateRandomCardTime(userId, time);
     }
 
     return id

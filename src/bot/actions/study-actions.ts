@@ -12,7 +12,7 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
         const card = await getRandomCardByUserId(userId)
         if (card) {
             cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};
-            await sendCardViaContext(randomCardMenu, ctx, cardsState);
+            await sendCardViaContext(randomCardMenu, cardsState, ctx);
         } else {
             ctx.reply('There is not cards to study \n Click "Add new" to start education');
         }
@@ -35,13 +35,13 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
         if(userId){
             const userCardsByUser = cardsState[userId]
             if (!userCardsByUser) {
-                ctx.reply('No Card found', backToMenus);
+                await ctx.reply('No Card found', backToMenus);
                 return
             }
 
 
             if (userCardsByUser.currentIndex < userCardsByUser.cards.length) {
-                const sentMessage = await sendCardViaContext(learnCardsMenu, ctx, cardsState);
+                const sentMessage = await sendCardViaContext(learnCardsMenu, cardsState, ctx);
                 if (userCardsByUser.lastMessageId) {
                     try {
                         await ctx.deleteMessage(userCardsByUser.lastMessageId);
@@ -65,7 +65,7 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
             const {cards, currentIndex} = cardsState[userId]
             const id = cards[currentIndex].id
             await markedCardAsLearned(id)
-            ctx.reply('Congrats with new phrase in your vocab 🚀 This phrase will be skipped the next time');
+            await ctx.reply('Congrats with new phrase in your vocab 🚀 This phrase will be skipped the next time');
         }
     })
 

@@ -114,13 +114,26 @@ export const insertRandomCardTime = async (user_id: number, rand_card_time: stri
     }
 }
 
-export const updateRandomCardTime = async (user_id: number, rand_card_time: string, show_random_card: boolean,) => {
+export const updateRandomCardTime = async (user_id: number, rand_card_time: string) => {
     const query = `UPDATE user_settings
                    SET rand_card_time=$1
                    WHERE user_id = $2`;
     console.log('Query inserted: ', query);
     try {
         await client.query(query, [rand_card_time, user_id]);
+        console.log('Updated a schedule with user ID:', user_id);
+    } catch (err) {
+        throw new Error();
+    }
+}
+
+export const updateShowRandomCardDaily = async (user_id: number, show_random_card: boolean) => {
+    const query = `UPDATE user_settings
+                   SET show_random_card=$1
+                   WHERE user_id = $2`;
+    console.log('Query inserted: ', query);
+    try {
+        await client.query(query, [show_random_card, user_id]);
         console.log('Updated a schedule with user ID:', user_id);
     } catch (err) {
         throw new Error();
@@ -142,8 +155,7 @@ export const getAllUserSchedules = async (): Promise<UserScheduleType[] | undefi
 export const getScheduleByUser = async (user_id: number): Promise<UserScheduleType[] | undefined> => {
     const query = `SELECT *
                    FROM user_settings
-                   WHERE show_random_card is true
-                     AND user_id = $1`;
+                   WHERE user_id = $1`;
     try {
         const res = await client.query(query, [user_id]);
         return res.rows;

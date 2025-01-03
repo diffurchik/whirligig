@@ -14,13 +14,6 @@ import {escapeMarkdownV2, getCurrentCard, getUserData} from "../../helper";
 import {sendCardViaContext} from "../card";
 
 export const cardActions = (bot: Telegraf<MyContext>, userActionState: UserStatesType, cardsState: CardStatesType) => {
-    bot.action('SET_RANDOM_CARD_TIME', async (ctx: Context) => {
-        const {userId, username} = getUserData(ctx)
-        await ctx.reply("At what time (HH:MM, 24-hour format) should I send you a random card daily?", {reply_markup: {force_reply: true}})
-        if (userId) {
-            userActionState[userId] = {username: username, step: ActionSteps.SetRandomTime};
-        }
-    })
 
     bot.action('CARD_SETTINGS', async (ctx: Context) => {
         await ctx.editMessageReplyMarkup(cardSettingsMenu)

@@ -1,7 +1,7 @@
 import {Card, CardStatesType, MyContext} from "../types";
 import {learnCardsMenu} from "./menus";
 import {escapeMarkdownV2} from "../helper";
-import {Context, Telegraf} from "telegraf";
+import {Telegraf} from "telegraf";
 
 export const formattedText = (card: Partial<Card>): string => {
     let formattedCard: string
@@ -19,7 +19,7 @@ export const formattedText = (card: Partial<Card>): string => {
 }
 
 
-export async function sendCardViaContext(menuButtons: any, cardsState: CardStatesType, ctx?: Context) {
+export async function sendCardViaContext(menuButtons: any, cardsState: CardStatesType, ctx: any) {
     const userId: number | undefined = ctx?.from?.id
     if (userId) {
         const {cards, currentIndex} = cardsState[userId];

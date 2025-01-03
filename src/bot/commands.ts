@@ -32,7 +32,7 @@ export const botCommands = (bot: Telegraf<MyContext>, userActionState: UserState
             const card = await getRandomCardByUserId(userId)
             if (card) {
                 cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};
-                await sendCardViaContext(randomCardMenu, ctx, cardsState);
+                await sendCardViaContext(randomCardMenu, cardsState, ctx);
             } else {
                 ctx.reply('There is not cards to study \n Click "Add new" to start education');
             }
