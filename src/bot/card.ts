@@ -1,5 +1,5 @@
 import {Card, CardStatesType, MyContext} from "../types";
-import {learnCardsMenu} from "./menus";
+import {learningCardsMenu} from "./menus";
 import {escapeMarkdownV2} from "../helper";
 import {Telegraf} from "telegraf";
 
@@ -39,7 +39,7 @@ export async function sendCardViaBot(menuButtons: any, card: Card, bot: Telegraf
 export async function sendCardAndDeletePreviousMessage(ctx: any, userId: number, cardsState: CardStatesType) {
     const {lastMessageId} = cardsState[userId];
 
-    const sentMessage = await sendCardViaContext(learnCardsMenu, cardsState, ctx)
+    const sentMessage = await sendCardViaContext(learningCardsMenu, cardsState, ctx)
 
     if (lastMessageId) {
         try {

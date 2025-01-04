@@ -1,8 +1,13 @@
 import {CardStatesType, MyContext} from "../../types";
 import {Context, Telegraf} from "telegraf";
-import {backToMenus, learnCardsMenu, randomCardMenu} from "../menus";
+import {backToMenus, learningCardsMenu, optionsToLearnMenu, randomCardMenu} from "../menus";
 import {sendCardViaContext, sendCardAndDeletePreviousMessage} from "../card";
-import {getNotLearnedPhrasesByUserName, getRandomCardByUserId, markedCardAsLearned} from "../../db";
+import {
+    getUnlearnedCardsByUserId,
+    getRandomCardByUserId,
+    markedCardAsLearned,
+    getNumberOfCardsByUserId
+} from "../../db";
 import {getUserData} from "../../helper";
 
 export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesType) => {
@@ -18,9 +23,13 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
         }
     })
 
-    bot.action('LEARNING_CARDS', async (ctx) => {
+    bot.action('LEARNING_CARDS', async (ctx: Context) => {
+        await ctx.editMessageText('Learning menu', {reply_markup: optionsToLearnMenu})
+    })
+
+    bot.action('LEARN_ALL', async (ctx) => {
             const userId = ctx.from.id;
-            const cards = await getNotLearnedPhrasesByUserName(ctx.from.id)
+            const cards = await getUnlearnedCardsByUserId(ctx.from.id)
             if (Array.isArray(cards) && cards.length) {
                 cardsState[userId] = {cards, currentIndex: 0, cardType: 'learning'};
                 await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
@@ -30,9 +39,10 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
             }
         }
     );
+
     bot.action('NEXT_CARD', async (ctx: Context) => {
         const {userId} = getUserData(ctx)
-        if(userId){
+        if (userId) {
             const userCardsByUser = cardsState[userId]
             if (!userCardsByUser) {
                 await ctx.reply('No Card found', backToMenus);
@@ -41,7 +51,7 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
 
 
             if (userCardsByUser.currentIndex < userCardsByUser.cards.length) {
-                const sentMessage = await sendCardViaContext(learnCardsMenu, cardsState, ctx);
+                const sentMessage = await sendCardViaContext(learningCardsMenu, cardsState, ctx);
                 if (userCardsByUser.lastMessageId) {
                     try {
                         await ctx.deleteMessage(userCardsByUser.lastMessageId);
@@ -61,7 +71,7 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
 
     bot.action('MARK_AS_LEARNED', async (ctx: Context) => {
         const {userId} = getUserData(ctx)
-        if(userId){
+        if (userId) {
             const {cards, currentIndex} = cardsState[userId]
             const id = cards[currentIndex].id
             await markedCardAsLearned(id)
@@ -69,4 +79,17 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
         }
     })
 
+    bot.action('LEARN_10', async (ctx: Context) => {
+        const {userId} = getUserData(ctx)
+        if (userId) {
+            const cards = await getNumberOfCardsByUserId(userId, 10)
+            if (Array.isArray(cards) && cards.length) {
+                cardsState[userId] = {cards, currentIndex: 0, cardType: 'learning'};
+                await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
+                cardsState[userId].currentIndex++
+            } else {
+                await ctx.reply('There are not cards to study \n Click "Add new" to start education');
+            }
+        }
+    })
 }

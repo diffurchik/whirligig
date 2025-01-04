@@ -1,20 +1,20 @@
 import {Client} from "pg";
 import {Card, UserScheduleType} from "./types";
 
-// const client = new Client({
-//     user: 'postgres',
-//     host: 'localhost',
-//     database: 'botdb',
-//     password: 'yourpassword',
-//     port: 5432,
-// });
-
 const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-    },
+    user: 'postgres',
+    host: 'localhost',
+    database: 'botdb',
+    password: 'yourpassword',
+    port: 5432,
 });
+
+// const client = new Client({
+//     connectionString: process.env.DATABASE_URL,
+//     ssl: {
+//         rejectUnauthorized: false,
+//     },
+// });
 
 client.connect()
     .then(() => console.log('Connected to the PostgreSQL database'))
@@ -48,7 +48,7 @@ export const getAllCardsByUserId = async (user_id: number): Promise<any[] | unde
     }
 };
 
-export const getNotLearnedPhrasesByUserName = async (user_id: number): Promise<any[] | undefined> => {
+export const getUnlearnedCardsByUserId = async (user_id: number): Promise<Card[] | undefined> => {
     const query = `SELECT *
                    FROM user_cards
                    WHERE learned = false
@@ -60,6 +60,20 @@ export const getNotLearnedPhrasesByUserName = async (user_id: number): Promise<a
         console.error('Error fetching data', err);
     }
 };
+
+export const getNumberOfCardsByUserId = async (user_id: number, count: number): Promise<Card[] | undefined> => {
+    const query = `SELECT *
+                   FROM user_cards
+                   WHERE learned = false AND user_id = $1
+                   ORDER BY RANDOM()
+                   LIMIT $2`;
+    try {
+        const res = await client.query(query, [user_id, count]);
+        return res.rows;
+    } catch (err) {
+        console.error('Error fetching data', err);
+    }
+}
 
 export const getRandomCardByUserId = async (user_id: number) => {
     const query = `SELECT *

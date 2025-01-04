@@ -1,4 +1,4 @@
-import {randomCardMenu, studyMenu} from "./menus";
+import {mainMenu, randomCardMenu, studyMenu} from "./menus";
 import {getRandomCardByUserId} from "../db";
 import {sendCardViaContext} from "./card";
 import {Context, Telegraf} from "telegraf";
@@ -14,9 +14,17 @@ export const botCommands = (bot: Telegraf<MyContext>, userActionState: UserState
         {command: 'help', description: 'Get help'}
     ]).catch(err => console.log(err));
 
+    bot.command('start', async (ctx) => {
+        const {userId, username} = getUserData(ctx)
+        if (userId) {
+            userActionState[userId] = {username: username, step: ActionSteps.AddEnglishPhrase};
+            await ctx.reply("You are in the main menu Choose an option:", mainMenu)
+        }
+    })
+
     bot.command('add_card', async (ctx: Context) => {
         const {userId, username} = getUserData(ctx)
-        if(userId){
+        if (userId) {
             userActionState[userId] = {username: username, step: ActionSteps.AddEnglishPhrase};
             await ctx.reply('🖖 Please, enter the English phrase you want to learn', {reply_markup: {force_reply: true}})
         }
@@ -28,7 +36,7 @@ export const botCommands = (bot: Telegraf<MyContext>, userActionState: UserState
 
     bot.command('random_card', async (ctx: Context) => {
         const {userId} = getUserData(ctx)
-        if(userId){
+        if (userId) {
             const card = await getRandomCardByUserId(userId)
             if (card) {
                 cardsState[userId] = {cards: [card], currentIndex: 0, cardType: 'random'};

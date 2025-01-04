@@ -5,7 +5,7 @@ import {
     cardSettingsMenu,
     confirmationMenu,
     editCardMenu,
-    learnCardsMenu,
+    learningCardsMenu,
     mainMenu,
     randomCardMenu
 } from "../menus";
@@ -22,7 +22,7 @@ export const cardActions = (bot: Telegraf<MyContext>, userActionState: UserState
     bot.action('CARD_MENU', async (ctx: Context) => {
         const {userId} = getUserData(ctx)
         if (userId) {
-            const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu;
+            const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learningCardsMenu;
             await ctx.editMessageReplyMarkup(menu)
         }
     })
@@ -105,7 +105,7 @@ export const cardActions = (bot: Telegraf<MyContext>, userActionState: UserState
         const {userId} = getUserData(ctx)
         if (userId) {
             try {
-                const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learnCardsMenu;
+                const menu = cardsState[userId].cardType === 'random' ? randomCardMenu : learningCardsMenu;
                 if (cardsState[userId].cardType === 'learning' && cardsState[userId].currentIndex > 1) {
                     cardsState[userId].currentIndex--
                 }
