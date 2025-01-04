@@ -70,7 +70,7 @@ export const settingsMenu = (isSendingRandomCard: boolean = false, isSendingRemi
                 [{
                     text: '🕙 Set time for the study reminder',
                     callback_data: 'SET_REMINDER_TIME'
-                }],,
+                }],
                 [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
             ]
         }
