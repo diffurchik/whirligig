@@ -18,11 +18,11 @@ export const settingsActions = (bot: Telegraf<MyContext>, userActionState: UserS
             const userSchedule = await getScheduleByUser(userId)
             if (userSchedule && userSchedule.length > 0) {
                 const {show_random_card, rand_card_time, reminder_time, send_reminder} = userSchedule[0]
-                const text: string = escapeMarkdownV2(`Your current settings is: \n\n` +
+                const text: string = `Your current settings is: \n\n` +
                     `▪️Send a random card daily: ${show_random_card ? `✅` : `No`}\n` +
-                    `▪️Time to send a random card: *${rand_card_time ? rand_card_time : '-'}*\n ` +
+                    `▪️Time to send a random card: *${rand_card_time ? rand_card_time : 'No'}*\n ` +
                     `▪️Send a study reminder daily: ${send_reminder ? '✅' : 'No'}\n ` +
-                    `▪️Time to send a study reminder: *${reminder_time ? reminder_time : '-'}*\n `)
+                    `▪️Time to send a study reminder: *${reminder_time ? reminder_time : 'No'}*\n `
                 await ctx.editMessageText(text, {reply_markup: settingsMenu(), parse_mode: "MarkdownV2"})
             } else {
                 const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: -`
