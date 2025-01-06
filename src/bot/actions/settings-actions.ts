@@ -25,7 +25,7 @@ export const settingsActions = (bot: Telegraf<MyContext>, userActionState: UserS
                     `▪️Time to send a study reminder: *${reminder_time ? reminder_time : 'No'}*\n `
                 await ctx.editMessageText(text, {reply_markup: settingsMenu(), parse_mode: "MarkdownV2"})
             } else {
-                const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: -`
+                const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: No`
                 await ctx.editMessageText(text, {reply_markup: settingsMenu(), parse_mode: "MarkdownV2"})
             }
         }
@@ -68,7 +68,7 @@ export const settingsActions = (bot: Telegraf<MyContext>, userActionState: UserS
                     parse_mode: "MarkdownV2"
                 })
             } else {
-                const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: -`
+                const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: No`
                 await ctx.editMessageText(text, {reply_markup: settingsRandomCard()})
             }
         }
@@ -83,7 +83,7 @@ export const settingsActions = (bot: Telegraf<MyContext>, userActionState: UserS
             const text: string = `Your current settings is: \n\n ▪️Send a reminder daily: ${send_reminder ? `✅` : `No`}\n ▪️Time to send a reminder: *${reminder_time}*`
             await ctx.editMessageText(text, {reply_markup: settingsReminder(), parse_mode: "MarkdownV2"})
         } else {
-            const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: -`
+            const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: No`
             await ctx.editMessageText(text, {reply_markup: settingsReminder()})
         }
 
