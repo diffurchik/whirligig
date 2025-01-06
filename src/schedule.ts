@@ -27,21 +27,15 @@ export async function loadSchedules(ctx: any, bot: Telegraf<MyContext>) {
 export function scheduleCard(schedule: UserScheduleType, ctx: Context, bot: Telegraf<MyContext>) {
     const {user_id, rand_card_time, show_random_card, reminder_time, send_reminder} = schedule
 
-    if (!show_random_card) {
-        return
-    }
-
     if (scheduledJobs[user_id]) {
         scheduledJobs[user_id].stop()
         delete scheduledJobs[user_id]
     }
 
-    const [randHours, randMinute] = rand_card_time.split(':')
-    const [remindHours, remindMinute] = reminder_time.split(':')
-    const cronExpressionRandom = `0 ${randMinute} ${randHours} * * *`
-    const cronExpressionReminder = `0 ${remindMinute} ${remindHours} * * *`
+    if(show_random_card && rand_card_time) {
+        const [randHours, randMinute] = rand_card_time.split(':')
+        const cronExpressionRandom = `0 ${randMinute} ${randHours} * * *`
 
-    if(show_random_card) {
         scheduledJobs[user_id] = cron.schedule(
             cronExpressionRandom, async () => {
                 const randomCard = await getRandomCardByUserId(user_id);
@@ -58,7 +52,9 @@ export function scheduleCard(schedule: UserScheduleType, ctx: Context, bot: Tele
         )
     }
 
-    if(send_reminder){
+    if(send_reminder && reminder_time){
+        const [remindHours, remindMinute] = reminder_time.split(':')
+        const cronExpressionReminder = `0 ${remindMinute} ${remindHours} * * *`
         scheduledJobs[user_id] = cron.schedule(cronExpressionReminder, async () => {
             await bot.telegram.sendMessage(user_id, '💡*Time to study!*💡', {reply_markup: optionsToLearnMenu, parse_mode: 'MarkdownV2'})
         })
