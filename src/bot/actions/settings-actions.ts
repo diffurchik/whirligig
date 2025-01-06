@@ -1,5 +1,5 @@
 import {Context, Telegraf} from "telegraf";
-import {getUserData} from "../../helper";
+import {escapeMarkdownV2, getUserData} from "../../helper";
 import {
     getScheduleByUser,
     insertRandomCardTime,
@@ -18,11 +18,11 @@ export const settingsActions = (bot: Telegraf<MyContext>, userActionState: UserS
             const userSchedule = await getScheduleByUser(userId)
             if (userSchedule && userSchedule.length > 0) {
                 const {show_random_card, rand_card_time, reminder_time, send_reminder} = userSchedule[0]
-                const text: string = `Your current settings is: \n\n` +
+                const text: string = escapeMarkdownV2(`Your current settings is: \n\n` +
                     `▪️Send a random card daily: ${show_random_card ? `✅` : `No`}\n` +
-                    `▪️Time to send a random card: *${rand_card_time? rand_card_time: '-'}*\n ` +
+                    `▪️Time to send a random card: *${rand_card_time ? rand_card_time : '-'}*\n ` +
                     `▪️Send a study reminder daily: ${send_reminder ? '✅' : 'No'}\n ` +
-                    `▪️Time to send a study reminder: *${reminder_time ? reminder_time : '-'}*\n `
+                    `▪️Time to send a study reminder: *${reminder_time ? reminder_time : '-'}*\n `)
                 await ctx.editMessageText(text, {reply_markup: settingsMenu(), parse_mode: "MarkdownV2"})
             } else {
                 const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: -`
@@ -63,7 +63,10 @@ export const settingsActions = (bot: Telegraf<MyContext>, userActionState: UserS
             if (userSchedule && userSchedule.length > 0) {
                 const {show_random_card, rand_card_time} = userSchedule[0]
                 const text: string = `Your current settings is: \n\n ▪️Send a random card daily: ${show_random_card ? `✅` : `No`}\n ▪️Time to send a random card: *${rand_card_time}*`
-                await ctx.editMessageText(text, {reply_markup: settingsRandomCard(show_random_card), parse_mode: "MarkdownV2"})
+                await ctx.editMessageText(text, {
+                    reply_markup: settingsRandomCard(show_random_card),
+                    parse_mode: "MarkdownV2"
+                })
             } else {
                 const text: string = `Your current settings is: \n\n ▪️Send a random card daily: No\n ▪️Time to send a random card: -`
                 await ctx.editMessageText(text, {reply_markup: settingsRandomCard()})
