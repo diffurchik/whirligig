@@ -23,6 +23,7 @@ export enum ActionSteps {
     EditEnglishPhrase = 'edit_english_phrase',
     EditTranslation = 'edit_translation',
     EditExamples = 'edit_examples',
+    SetReminderTime = 'set_reminder_time',
 }
 
 export type NewPhraseState = Partial<AddNewPhraseDB> & { step?: ActionSteps };
@@ -59,6 +60,8 @@ export type UserScheduleType = {
     rand_card_time: string;
     show_random_card: boolean;
     timezone: string;
+    reminder_time: string;
+    send_reminder: boolean;
 }
 
 export type CardStatesType = Record<number, {

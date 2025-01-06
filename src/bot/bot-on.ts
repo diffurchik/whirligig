@@ -1,11 +1,10 @@
 import {message} from "telegraf/filters";
 import {ActionSteps, CardStatesType, MyContext, UserScheduleType, UserStatesType} from "../types";
-import {scheduleCard, setRandomCardTime} from "../schedule";
+import {scheduleCard, setRandomCardTime, setReminderTime} from "../schedule";
 import {escapeMarkdownV2, getCurrentCard} from "../helper";
 import {backToSettingsMenu, editCardMenu} from "./menus";
 import {updateCardData} from "../db";
 import {sendCardViaContext} from "./card";
-import {bot} from "../main";
 import {Context, Telegraf} from "telegraf";
 
 export const botOn = (bot: Telegraf<MyContext>, userActionState: UserStatesType, cardsState: CardStatesType) => {
@@ -64,23 +63,12 @@ export const botOn = (bot: Telegraf<MyContext>, userActionState: UserStatesType,
 
         if (state.step === ActionSteps.SetRandomTime) {
             const time = ctx.message.text;
+            await handleTimeSetting(ctx, userId, time, ActionSteps.SetRandomTime, bot);
+        }
 
-            if (!/^\d{2}:\d{2}$/.test(time)) {
-                return ctx.reply("Invalid time format. Please enter time as HH:MM (24-hour).");
-            }
-
-            const id = await setRandomCardTime(userId, time, true)
-            const userSchedule: UserScheduleType = {
-                id: id,
-                user_id: ctx.from.id,
-                show_random_card: true,
-                rand_card_time: time,
-                timezone: 'UTC'
-            }
-
-            scheduleCard(userSchedule, ctx, cardsState, bot)
-            const message = escapeMarkdownV2(`Got it! I'll send you a random card daily at ${time}`)
-            await ctx.replyWithMarkdownV2(message, backToSettingsMenu);
+        if (state.step === ActionSteps.SetReminderTime) {
+            const time = ctx.message.text;
+            await handleTimeSetting(ctx, userId, time, ActionSteps.SetReminderTime, bot);
         }
 
         if (state.step === ActionSteps.EditEnglishPhrase) {
@@ -126,4 +114,38 @@ export const botOn = (bot: Telegraf<MyContext>, userActionState: UserStatesType,
             }
         }
     })
+
+    async function handleTimeSetting(
+        ctx: Context,
+        userId: number,
+        time: string,
+        actionStep: ActionSteps,
+        bot: Telegraf<MyContext>
+    ) {
+        if (!/^\d{2}:\d{2}$/.test(time)) {
+            return ctx.reply("Invalid time format. Please enter time as HH:MM (24-hour).");
+        }
+        if (!ctx.from) return
+        const userCurrentSchedule = await setRandomCardTime(userId, time, true);
+        const userSchedule: UserScheduleType = {
+            id: userCurrentSchedule?.id || undefined,
+            user_id: ctx.from.id,
+            show_random_card: userCurrentSchedule?.show_random_card || false,
+            rand_card_time: userCurrentSchedule?.rand_card_time || '',
+            timezone: 'UTC',
+            reminder_time: userCurrentSchedule?.reminder_time || '',
+            send_reminder: userCurrentSchedule?.send_reminder || false,
+        };
+
+        scheduleCard(userSchedule, ctx, bot);
+
+        const actionText =
+            actionStep === ActionSteps.SetRandomTime
+                ? "a random card daily"
+                : "a reminder daily";
+
+        const message = escapeMarkdownV2(`Got it! I'll send you ${actionText} at ${time}`);
+        await ctx.replyWithMarkdownV2(message, backToSettingsMenu);
+    }
 }
+

@@ -39,7 +39,7 @@ bot.launch(() => {
 });
 
 if (bot) bot.telegram.getMe().then(async (ctx) => {
-    await loadSchedules(ctx, cardsState, bot)
+    await loadSchedules(ctx, bot)
 })
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

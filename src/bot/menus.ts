@@ -20,26 +20,26 @@ export const studyMenu = {
 };
 
 export const learningCardsMenu = {
-        inline_keyboard: [
-            [{text: '➡️ Next card', callback_data: 'NEXT_CARD'}, {
-                text: '✅ I learned it',
-                callback_data: 'MARK_AS_LEARNED'
-            }],
-            [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}],
-            [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}]
+    inline_keyboard: [
+        [{text: '➡️ Next card', callback_data: 'NEXT_CARD'}, {
+            text: '✅ I learned it',
+            callback_data: 'MARK_AS_LEARNED'
+        }],
+        [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}],
+        [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}]
 
-        ],
+    ],
 }
 
 export const randomCardMenu = {
-        inline_keyboard: [
-            [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}, {
-                text: '✅ I learned it',
-                callback_data: 'MARK_AS_LEARNED'
-            }],
-            [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}]
+    inline_keyboard: [
+        [{text: 'Back to the study menu 🔙', callback_data: 'STUDY_MENU'}, {
+            text: '✅ I learned it',
+            callback_data: 'MARK_AS_LEARNED'
+        }],
+        [{text: '🔧 Card settings', callback_data: 'CARD_SETTINGS'}]
 
-        ],
+    ],
 }
 
 export const addedCardMenu = {
@@ -54,26 +54,46 @@ export const addedCardMenu = {
     }
 }
 
-export const settingsMenu = (isSendingRandomCard: boolean = false, isSendingReminder: boolean = false) => {
-    const textSendRandomCard: string = isSendingRandomCard ? '🛑 I don\'t want to get random card daily' : ` 🤓 Send me a random card daily`
-    const textSendReminder: string = isSendingReminder? 'I don\'t want to get reminder' : '🤓 Send me a study reminder daily'
+export const settingsMenu = () => {
 
     return {
-        reply_markup: {
-            inline_keyboard: [
-                [{text: textSendRandomCard, callback_data: 'SET_SENDING_RANDOM_CARD'}],
-                [{text: textSendReminder, callback_data: 'SET_SENDING_REMINDER'}],
-                [{
-                    text: '🕙 Set time for the random card',
-                    callback_data: 'SET_RANDOM_CARD_TIME'
-                }],
-                [{
-                    text: '🕙 Set time for the study reminder',
-                    callback_data: 'SET_REMINDER_TIME'
-                }],
-                [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
-            ]
-        }
+        inline_keyboard: [
+            [{text: 'Settings for a random card', callback_data: 'SETTINGS_RANDOM_CARD'}],
+            [{text: 'Settings for a study reminder', callback_data: 'SETTINGS_REMINDER'}],
+
+            [{text: "🔙 Back to main menu", callback_data: "MAIN_MENU"}],
+        ]
+
+    }
+}
+
+export const settingsRandomCard = (isSendingRandomCard: boolean = false) => {
+    const textSendRandomCard: string = isSendingRandomCard ? '❌ I don\'t want to get random card daily' : ` 🤓 Send me a random card daily`
+
+    return {
+        inline_keyboard: [
+            [{text: textSendRandomCard, callback_data: 'SET_SENDING_RANDOM_CARD'}],
+            [{
+                text: '🕙 Set time for the random card',
+                callback_data: 'SET_RANDOM_CARD_TIME'
+            }],
+            [{text: "🔙 Back to the settings menu", callback_data: "SETTINGS"}]
+        ]
+    }
+}
+
+export const settingsReminder = (isSendingReminder: boolean = false) => {
+    const textSendReminder: string = isSendingReminder ? '❌ I don\'t want to get reminder' : '🤓 Send me a study reminder daily'
+
+    return {
+        inline_keyboard: [
+            [{text: textSendReminder, callback_data: 'SET_SENDING_REMINDER'}],
+            [{
+                text: '🕙 Set time for the study reminder',
+                callback_data: 'SET_REMINDER_TIME'
+            }],
+            [{text: "🔙 Back to the settings menu", callback_data: "SETTINGS"}]
+        ]
     }
 }
 
@@ -121,7 +141,10 @@ export const editCardMenu = {
 
 export const optionsToLearnMenu = {
     inline_keyboard: [
-        [{text: 'Learn all unlearned cards', callback_data: 'LEARN_ALL'}, {text: 'Learn 10 random cards', callback_data: 'LEARN_10'}],
+        [{text: 'Learn all unlearned cards', callback_data: 'LEARN_ALL'}, {
+            text: 'Learn 10 random cards',
+            callback_data: 'LEARN_10'
+        }],
         [{text: '🔙 Back to the study menu ', callback_data: 'STUDY_MENU'}]
     ]
 }

@@ -2,32 +2,32 @@ import {
     getAllUserSchedules,
     getRandomCardByUserId,
     getScheduleByUser,
-    insertRandomCardTime,
-    updateRandomCardTime
+    insertRandomCardTime, insertReminderTime,
+    updateRandomCardTime, updateReminderTime
 } from "./db";
-import {CardStatesType, MyContext, UserScheduleType} from "./types";
+import {MyContext, UserScheduleType} from "./types";
 import cron from 'node-cron';
 import {sendCardViaBot} from "./bot/card";
-import {randomCardMenu} from "./bot/menus";
-import { ScheduledTask } from 'node-cron'
+import {optionsToLearnMenu, randomCardMenu} from "./bot/menus";
+import {ScheduledTask} from 'node-cron'
 import {Context, Telegraf} from "telegraf";
 
 const scheduledJobs: Record<number, ScheduledTask> = {};
 
-export async function loadSchedules(ctx: any, cardState: CardStatesType, bot: Telegraf<MyContext>) {
+export async function loadSchedules(ctx: any, bot: Telegraf<MyContext>) {
     const schedules = await getAllUserSchedules()
     if (schedules && schedules.length !== 0) {
         schedules.forEach((schedule) => {
-            scheduleCard(schedule, ctx, cardState, bot)
+            scheduleCard(schedule, ctx, bot)
         })
     }
     console.log('scheduledJobs', scheduledJobs)
 }
 
-export function scheduleCard(schedule: UserScheduleType, ctx: Context, cardsState: CardStatesType, bot: Telegraf<MyContext>) {
-    const {user_id, rand_card_time, show_random_card} = schedule
+export function scheduleCard(schedule: UserScheduleType, ctx: Context, bot: Telegraf<MyContext>) {
+    const {user_id, rand_card_time, show_random_card, reminder_time, send_reminder} = schedule
 
-    if(!show_random_card){
+    if (!show_random_card) {
         return
     }
 
@@ -36,34 +36,58 @@ export function scheduleCard(schedule: UserScheduleType, ctx: Context, cardsStat
         delete scheduledJobs[user_id]
     }
 
-    const [hours, minute] = rand_card_time.split(':')
-    const cronExpression = `0 ${minute} ${hours} * * *`
+    const [randHours, randMinute] = rand_card_time.split(':')
+    const [remindHours, remindMinute] = reminder_time.split(':')
+    const cronExpressionRandom = `0 ${randMinute} ${randHours} * * *`
+    const cronExpressionReminder = `0 ${remindMinute} ${remindHours} * * *`
 
-    scheduledJobs[user_id] = cron.schedule(
-        cronExpression, async () => {
-            const randomCard = await getRandomCardByUserId(user_id);
-            console.log('randomCard', randomCard)
-            if (randomCard) {
-                console.log('ctx', ctx)
-                await bot.telegram.sendMessage(user_id, "✨ *Scheduled Card* ✨", { parse_mode: 'MarkdownV2' })
+    if(show_random_card) {
+        scheduledJobs[user_id] = cron.schedule(
+            cronExpressionRandom, async () => {
+                const randomCard = await getRandomCardByUserId(user_id);
+                console.log('randomCard', randomCard)
+                if (randomCard) {
+                    console.log('ctx', ctx)
+                    await bot.telegram.sendMessage(user_id, "✨ *Scheduled Card* ✨", {parse_mode: 'MarkdownV2'})
 
-                await sendCardViaBot(randomCardMenu, randomCard, bot, user_id);
-            } else {
-                await ctx.reply('There is not cards to study \n Click "Add new" to start education');
+                    await sendCardViaBot(randomCardMenu, randomCard, bot, user_id);
+                } else {
+                    await ctx.reply('There is not cards to study \n Click "Add new" to start education');
+                }
             }
-        }
-    )
+        )
+    }
+
+    if(send_reminder){
+        scheduledJobs[user_id] = cron.schedule(cronExpressionReminder, async () => {
+            await bot.telegram.sendMessage(user_id, '💡*Time to study!*💡', {reply_markup: optionsToLearnMenu, parse_mode: 'MarkdownV2'})
+        })
+    }
+
 }
 
-export async function setRandomCardTime(userId: number, time: string, showRandomCard: boolean) {
+export async function setRandomCardTime(userId: number, time: string, showRandomCard: boolean): Promise<UserScheduleType | undefined> {
+    const scheduleByUser = await getScheduleByUser(userId)
+    let userSchedule: UserScheduleType | undefined
+    if (!scheduleByUser || scheduleByUser.length === 0) {
+        userSchedule = await insertRandomCardTime(userId, time, showRandomCard);
+    } else {
+        await updateRandomCardTime(userId, time);
+        const userSchedules = await getScheduleByUser(userId)
+        userSchedule = userSchedules? userSchedules[0] : undefined
+    }
+
+    return userSchedule
+}
+
+export async function setReminderTime(userId: number, time: string, sendReminder: boolean) {
     const scheduleByUser = await getScheduleByUser(userId)
     let id: number | undefined
     if (!scheduleByUser || scheduleByUser.length === 0) {
-       id = await insertRandomCardTime(userId, time, showRandomCard);
+        id = await insertReminderTime(userId, time, sendReminder);
     } else {
-        await updateRandomCardTime(userId, time);
+        await updateReminderTime(userId, time);
     }
 
     return id
-
 }

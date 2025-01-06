@@ -114,7 +114,7 @@ export const updateCardData = async (columnName: string, updatedValue: string, u
     }
 }
 
-export const insertRandomCardTime = async (user_id: number, rand_card_time: string, show_random_card: boolean,) => {
+export const insertRandomCardTime = async (user_id: number, rand_card_time: string, show_random_card: boolean,): Promise<UserScheduleType> => {
     const query = `INSERT INTO user_settings (rand_card_time, show_random_card, user_id)
                    VALUES ($1, $2, $3)
                    RETURNING id;`;
@@ -122,7 +122,7 @@ export const insertRandomCardTime = async (user_id: number, rand_card_time: stri
     try {
         const res = await client.query(query, [rand_card_time, show_random_card, user_id]);
         console.log('Inserted a schedule with ID:', res.rows[0].id);
-        return res.rows[0].id
+        return res.rows[0]
     } catch (err) {
         throw new Error();
     }
@@ -157,7 +157,7 @@ export const updateShowRandomCardDaily = async (user_id: number, show_random_car
 export const getAllUserSchedules = async (): Promise<UserScheduleType[] | undefined> => {
     const query = `SELECT *
                    FROM user_settings
-                   WHERE show_random_card is true`;
+                   WHERE show_random_card is true OR send_reminder is true`;
     try {
         const res = await client.query(query);
         return res.rows;
@@ -189,5 +189,45 @@ export const deleteCardFromDB = async (user_id: number, card_id: number): Promis
         return true;
     } catch (err) {
         console.error('Error deleting user: ', err);
+    }
+}
+
+export const insertReminderTime = async (user_id: number, reminder_time: string, send_reminder: boolean,) => {
+    const query = `INSERT INTO user_settings (reminder_time, send_reminder, user_id)
+                   VALUES ($1, $2, $3)
+                   RETURNING id;`;
+    console.log('Query inserted: ', query);
+    try {
+        const res = await client.query(query, [reminder_time, send_reminder, user_id]);
+        console.log('Inserted a schedule with ID:', res.rows[0].id);
+        return res.rows[0].id
+    } catch (err) {
+        throw new Error();
+    }
+}
+
+export const updateReminderTime = async (user_id: number, reminder_time: string) => {
+    const query = `UPDATE user_settings
+                   SET reminder_time=$1
+                   WHERE user_id = $2`;
+    console.log('Query inserted: ', query);
+    try {
+        await client.query(query, [reminder_time, user_id]);
+        console.log('Updated a schedule with user ID:', user_id);
+    } catch (err) {
+        throw new Error();
+    }
+}
+
+export const updateSendReminder = async (user_id: number, send_reminder: boolean) => {
+    const query = `UPDATE user_settings
+                   SET send_reminder=$1
+                   WHERE user_id = $2`;
+    console.log('Query inserted: ', query);
+    try {
+        await client.query(query, [send_reminder, user_id]);
+        console.log('Updated a schedule with user ID:', user_id);
+    } catch (err) {
+        throw new Error();
     }
 }
