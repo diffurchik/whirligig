@@ -57,7 +57,7 @@ export function scheduleCard(schedule: UserScheduleType, ctx: Context, bot: Tele
         const cronExpressionReminder = `0 ${remindMinute} ${remindHours} * * *`
         scheduledJobs[user_id] = cron.schedule(cronExpressionReminder, async () => { //todo: if there is already schedule for user
             console.log(`send reminder for ${user_id}`)
-            await bot.telegram.sendMessage(user_id, '💡*Time to study!*💡', {reply_markup: optionsToLearnMenu, parse_mode: 'MarkdownV2'})
+            await bot.telegram.sendMessage(user_id, '💡Time to study💡')
         })
     }
 
