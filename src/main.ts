@@ -11,8 +11,8 @@ import {botCommands} from "./bot/commands";
 import {botOn} from "./bot/bot-on";
 import {settingsActions} from "./bot/actions/settings-actions";
 
-// const BOT_TOKEN = '8084776606:AAGDCeqWhkYN7tXcZoDjLy0Eq8W3Ip3Wc0M'; // test
-const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM'; // prod
+const BOT_TOKEN = '8084776606:AAGDCeqWhkYN7tXcZoDjLy0Eq8W3Ip3Wc0M'; // test
+// const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM'; // prod
 
 if (!BOT_TOKEN) {
     throw new Error('Bot token is missing. Please add your bot token.');

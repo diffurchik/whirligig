@@ -12,7 +12,7 @@ import {optionsToLearnMenu, randomCardMenu} from "./bot/menus";
 import {ScheduledTask} from 'node-cron'
 import {Context, Telegraf} from "telegraf";
 
-const scheduledJobs: Record<number, ScheduledTask> = {};
+const scheduledJobs: Record<number, {randomCard?: ScheduledTask, reminder?: ScheduledTask}> = {};
 
 export async function loadSchedules(ctx: any, bot: Telegraf<MyContext>) {
     const schedules = await getAllUserSchedules()
@@ -27,16 +27,18 @@ export async function loadSchedules(ctx: any, bot: Telegraf<MyContext>) {
 export function scheduleCard(schedule: UserScheduleType, ctx: Context, bot: Telegraf<MyContext>) {
     const {user_id, rand_card_time, show_random_card, reminder_time, send_reminder} = schedule
 
-    if (scheduledJobs[user_id]) {
-        scheduledJobs[user_id].stop()
-        delete scheduledJobs[user_id]
+
+    if (scheduledJobs[user_id] && scheduledJobs[user_id].randomCard) {
+        scheduledJobs[user_id].randomCard.stop()
+        delete scheduledJobs[user_id].randomCard
     }
 
     if(show_random_card && rand_card_time) {
         const [randHours, randMinute] = rand_card_time.split(':')
         const cronExpressionRandom = `0 ${randMinute} ${randHours} * * *`
 
-        scheduledJobs[user_id] = cron.schedule(
+        if(!scheduledJobs[user_id]) scheduledJobs[user_id] = {}
+        scheduledJobs[user_id].randomCard = cron.schedule(
             cronExpressionRandom, async () => {
                 const randomCard = await getRandomCardByUserId(user_id);
                 console.log('randomCard', randomCard)
@@ -52,12 +54,18 @@ export function scheduleCard(schedule: UserScheduleType, ctx: Context, bot: Tele
         )
     }
 
+    if (scheduledJobs[user_id] && scheduledJobs[user_id].reminder) {
+        scheduledJobs[user_id].reminder.stop()
+        delete scheduledJobs[user_id].reminder
+    }
+
     if(send_reminder && reminder_time){
         const [remindHours, remindMinute] = reminder_time.split(':')
         const cronExpressionReminder = `0 ${remindMinute} ${remindHours} * * *`
-        scheduledJobs[user_id] = cron.schedule(cronExpressionReminder, async () => { //todo: if there is already schedule for user
+        if(!scheduledJobs[user_id]) scheduledJobs[user_id] = {}
+        scheduledJobs[user_id].reminder = cron.schedule(cronExpressionReminder, async () => {
             console.log(`send reminder for ${user_id}`)
-            await bot.telegram.sendMessage(user_id, '💡Time to study💡')
+            await bot.telegram.sendMessage(user_id, '💡*Time to study*💡', {reply_markup: optionsToLearnMenu, parse_mode: 'MarkdownV2'})
         })
     }
 
