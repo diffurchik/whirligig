@@ -10,9 +10,9 @@ export const formattedText = (card: Partial<Card>): string => {
     const escapedExample = card.examples ? escapeMarkdownV2(card.examples!) : undefined
 
     if (card.examples) {
-        formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n ${escapedTranslation}\n\n\n*Example*\n ${escapedExample}`;
+        formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n||${escapedTranslation}||\n\n\n*Example*\n||${escapedExample}||`;
     } else {
-        formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n ${escapedTranslation}`;
+        formattedCard = `\n\n*English Phrase* \n${escapedEnglishPhrase}\n\n\n*Translation*\n||${escapedTranslation}||`;
     }
 
     return formattedCard
