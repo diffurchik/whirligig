@@ -3,10 +3,7 @@ import {addedCardMenu, backToMenus, mainMenu, settingsMenu, studyMenu} from "../
 import {formattedText} from "../card";
 import {
     getAllCardsByUserId,
-    getScheduleByUser,
     insertPhrase,
-    insertRandomCardTime,
-    updateShowRandomCardDaily,
 } from "../../db";
 import {escapeMarkdownV2, getUserData} from "../../helper";
 import {ActionSteps, Card, CardStatesType, MyContext, UserStatesType} from "../../types";

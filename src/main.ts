@@ -1,4 +1,5 @@
 import {Telegraf} from 'telegraf';
+import { config } from 'dotenv';
 import {CardStatesType, MyContext, NewPhraseState} from './types'
 import {
     mainMenu,
@@ -11,12 +12,15 @@ import {botCommands} from "./bot/commands";
 import {botOn} from "./bot/bot-on";
 import {settingsActions} from "./bot/actions/settings-actions";
 
-// const BOT_TOKEN = '8084776606:AAGDCeqWhkYN7tXcZoDjLy0Eq8W3Ip3Wc0M'; // test
-const BOT_TOKEN = '8060710922:AAFVRXNGB7a-NmwTzYEDeWx6pNzUrvSzKXM'; // prod
+config();
+const isProduction = process.env.NODE_ENV === 'production';
+const BOT_TOKEN = isProduction ? process.env.BOT_TOKEN_PROD : process.env.BOT_TOKEN_TEST;
 
 if (!BOT_TOKEN) {
     throw new Error('Bot token is missing. Please add your bot token.');
 }
+
+console.log(`✅ Using ${isProduction ? 'PROD' : 'TEST'} bot token`);
 
 export const bot = new Telegraf<MyContext>(BOT_TOKEN);
 const userActionState: Record<number, Partial<NewPhraseState>> = {}

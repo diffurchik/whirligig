@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@railway/cli": "^3.19.1",
+    "dotenv": "^16.4.7",
     "node-cron": "^3.0.3",
     "pg": "^8.13.1",
     "sqlite3": "^5.1.7",
