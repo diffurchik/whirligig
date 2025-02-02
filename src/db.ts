@@ -1,20 +1,21 @@
 import {Client} from "pg";
 import {Card, UserScheduleType} from "./types";
+import { config } from 'dotenv';
+config();
 
-// const client = new Client({
-//     user: 'postgres',
-//     host: 'localhost',
-//     database: 'botdb',
-//     password: 'yourpassword',
-//     port: 5432,
-// });
+const isProduction = process.env.NODE_ENV === 'production';
 
-const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-    },
-});
+const client = new Client(
+    isProduction
+        ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
+        : {
+            user: process.env.DB_USER,
+            host: process.env.DB_HOST,
+            database: process.env.DB_NAME,
+            password: process.env.DB_PASSWORD,
+            port: Number(process.env.DB_PORT),
+        }
+);
 
 client.connect()
     .then(() => console.log('Connected to the PostgreSQL database'))
