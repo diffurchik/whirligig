@@ -97,6 +97,7 @@ export const markedCardAsLearned = async (cardId: number): Promise<void> => {
                    WHERE id = ${cardId};`
     try {
         const res = await client.query(query);
+        console.log('Query inserted: ', query);
     } catch (err) {
         console.error('Error fetching data', err);
     }

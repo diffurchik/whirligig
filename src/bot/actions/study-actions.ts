@@ -70,12 +70,16 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
     })
 
     bot.action('MARK_AS_LEARNED', async (ctx: Context) => {
-        const {userId} = getUserData(ctx)
-        if (userId) {
-            const {cards, currentIndex} = cardsState[userId]
-            const id = cards[currentIndex].id
-            await markedCardAsLearned(id)
-            await ctx.reply('Congrats with new phrase in your vocab 🚀 This phrase will be skipped the next time');
+        const { userId } = getUserData(ctx)
+        try {
+            if (userId) {
+                const {cards, currentIndex} = cardsState[userId]
+                const id = cards[currentIndex].id
+                await markedCardAsLearned(id)
+                await ctx.reply('Congrats with new phrase in your vocab 🚀 This phrase will be skipped the next time');
+            }
+        } catch (error) {
+            console.error('Error marking card as learned:', error);
         }
     })
 

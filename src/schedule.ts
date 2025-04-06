@@ -87,12 +87,14 @@ export async function setRandomCardTime(userId: number, time: string, showRandom
 
 export async function setReminderTime(userId: number, time: string, sendReminder: boolean) {
     const scheduleByUser = await getScheduleByUser(userId)
-    let id: number | undefined
+    let userSchedule: UserScheduleType | undefined
     if (!scheduleByUser || scheduleByUser.length === 0) {
-        id = await insertReminderTime(userId, time, sendReminder);
+        userSchedule = await insertReminderTime(userId, time, sendReminder);
     } else {
         await updateReminderTime(userId, time);
+        const userSchedules = await getScheduleByUser(userId)
+        userSchedule = userSchedules? userSchedules[0] : undefined
     }
 
-    return id
+    return userSchedule
 }

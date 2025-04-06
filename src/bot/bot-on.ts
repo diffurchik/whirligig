@@ -126,7 +126,10 @@ export const botOn = (bot: Telegraf<MyContext>, userActionState: UserStatesType,
             return ctx.reply("Invalid time format. Please enter time as HH:MM (24-hour).");
         }
         if (!ctx.from) return
-        const userCurrentSchedule = await setRandomCardTime(userId, time, true);
+        let userCurrentSchedule
+        if(actionStep === ActionSteps.SetRandomTime) {userCurrentSchedule = await setRandomCardTime(userId, time, true)}
+        if(actionStep === ActionSteps.SetReminderTime) {userCurrentSchedule = await setReminderTime(userId, time, true)}
+
         const userSchedule: UserScheduleType = {
             id: userCurrentSchedule?.id || undefined,
             user_id: ctx.from.id,
