@@ -76,6 +76,8 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
                 const {cards, currentIndex} = cardsState[userId]
                 const id = cards[currentIndex].id
                 await markedCardAsLearned(id)
+                cards[currentIndex].learned = true
+                cardsState[userId].currentIndex++
                 await ctx.reply('Congrats with new phrase in your vocab 🚀 This phrase will be skipped the next time');
             }
         } catch (error) {
@@ -90,7 +92,6 @@ export const studyActions = (bot: Telegraf<MyContext>, cardsState: CardStatesTyp
             if (Array.isArray(cards) && cards.length) {
                 cardsState[userId] = {cards, currentIndex: 0, cardType: 'learning'};
                 await sendCardAndDeletePreviousMessage(ctx, userId, cardsState);
-                cardsState[userId].currentIndex++
             } else {
                 await ctx.reply('There are not cards to study \n Click "Add new" to start education');
             }
